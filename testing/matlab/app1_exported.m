@@ -36,6 +36,8 @@ classdef app1_exported < matlab.apps.AppBase
         T1 
         T2
         BAND
+        peakLocations
+        frequencies
     end
     
     methods (Access = private)
@@ -60,7 +62,7 @@ classdef app1_exported < matlab.apps.AppBase
 %                     plot(app.UIAxes2,tt,app.DATA{app.SNR}.b95.phase(app.T1:app.T2),tt,app.DATA{app.SNR}.b95.amplitude(app.T1:app.T2))                                  
             end
             plot(app.UIAxes4,tt,app.SUBSET.best(app.T1:app.T2));
-            %app.getFreq();
+            app.getFreq();
         end
         
         
@@ -79,15 +81,14 @@ classdef app1_exported < matlab.apps.AppBase
         end
         
         function getFreq(app)
-            ll1=app.DATA{app.SNR}.loc<app.T2;
-            ll2=app.DATA{app.SNR}.loc>app.T1;
+            ll1=app.peakLocations<app.T2;
+            ll2=app.peakLocations>app.T1;
             ll3=ll1 & ll2;
             if any(ll3)
                 for i=1:length(ll3)
                     if ll3(i)==1
                         t1=i;
-                        
-                        ff=1/(app.DATA{1}.t(app.DATA{app.SNR}.loc(t1+1))-app.DATA{1}.t(app.DATA{app.SNR}.loc(t1)));
+                        ff=1/(app.SUBSET.t(app.peakLocations(t1+1))-app.SUBSET.t(app.peakLocations(t1)));
                         break
                     end
                 end
@@ -111,11 +112,29 @@ classdef app1_exported < matlab.apps.AppBase
             
             %Teensy signals
             namez={'x','b35p','b35a','b55p','b55a','b75p','b75a','b95p','b95a','best','detection','amp0','amp1','amp2','amp3','snr','counter'}';
-            dtypez={'int32','double','double','double','double','double','double','double','double','int32','int32','double','double','double','double','categorical','int32'};
+            dtypez={'int32','double','double','double','double','double','double','double','double','int32','int32','double','double','double','double','int32','int32'};
             oo=delimitedTextImportOptions('VariableNames',namez,'DataLines',2,'VariableTypes',dtypez);
             data=readtable('putty_new.log',oo);
+%             datamat=readmatrix('putty_new.log');
             t=repmat((0:1/2000:X.time_len)',4,1);
             data=addvars(data,t,'Before','x');
+            
+            clean=[X.clean_4 ;X.clean_8 ;X.clean_12; X.clean_16];
+            data=addvars(data,clean);
+            
+            [~,app.peakLocations]=findpeaks(data.clean(1:20001));
+            
+            fff=app.peakLocations*0;
+            for i=1:length(app.peakLocations)-1
+                fff(i)=1/(t(app.peakLocations(i+1))-t(app.peakLocations(i)));
+            end
+            app.frequencies=fff(1:end-1);
+%             datamat=[datamat, t];
+%             datamat2=zeros([20001,18,4]);
+%             datamat2(:,:,1)=datamat(1:20001,:);
+%             datamat2(:,:,2)=datamat(20002:40002,:);
+%             datamat2(:,:,3)=datamat(40003:60003,:);
+%             datamat2(:,:,4)=datamat(60004:80004,:);
             snr=[4,8,12,16];
             
             app.SNRListBox.Items=string(snr);
@@ -136,7 +155,7 @@ classdef app1_exported < matlab.apps.AppBase
         % Value changed function: SNRListBox
         function SNRListBoxValueChanged(app, event)
             app.SNR = app.SNRListBox.Value;
-            row=app.DATA.snr==app.SNR;
+            row=app.DATA.snr==str2double(app.SNR);
             app.SUBSET=app.DATA(row,:);
 %             histogram(app.UIAxes3,app.DATA{app.SNR}.mat);
 %             app.MeanPeakDetectionOffsetTimemsEditField.Value=mean(app.DATA{app.SNR}.mat);
@@ -191,15 +210,15 @@ classdef app1_exported < matlab.apps.AppBase
         % Value changed function: DesiredFrequencyEditField
         function DesiredFrequencyEditFieldValueChanged(app, event)
             value = app.DesiredFrequencyEditField.Value;
-            fff=app.DATA{app.SNR}.fff;
+            fff=app.frequencies;
             for i=1:length(fff)
                if fff(i)>value
                     break
                end
             end
             disp(fff(i))
-            app.T1=app.DATA{app.SNR}.loc(i)-200;
-            app.T2=app.DATA{app.SNR}.loc(i)+200;
+            app.T1=app.peakLocations(i)-200;
+            app.T2=app.peakLocations(i)+200;
             app.TimeEditField.Value=app.T1/2000;
             app.Time2EditField.Value=app.T2/2000;
             app.plotresult();

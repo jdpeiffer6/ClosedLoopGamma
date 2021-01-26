@@ -36,6 +36,7 @@ classdef app1_exported < matlab.apps.AppBase
         T1 
         T2
         BAND
+        peakLocations
     end
     
     methods (Access = private)
@@ -48,44 +49,46 @@ classdef app1_exported < matlab.apps.AppBase
             plot(app.UIAxes,tt,app.SUBSET.x(app.T1:app.T2),tt,207*app.SUBSET.detection(app.T1:app.T2)+514)
             switch app.BAND
                 case 1
-                    plot(app.UIAxes2,tt,app.SUBSET.b35p(app.T1:app.T2))
-                    %,tt,app.DATA{app.SNR}.b35.amplitude(app.T1:app.T2))               
+                    plot(app.UIAxes2,tt,app.SUBSET.b35p(app.T1:app.T2),tt,app.SUBSET.b35a(app.T1:app.T2))             
                 case 2
-                    plot(app.UIAxes2,tt,app.DATA{app.SNR}.b55.phase(app.T1:app.T2),tt,app.DATA{app.SNR}.b55.amplitude(app.T1:app.T2))
+                    plot(app.UIAxes2,tt,app.SUBSET.b55p(app.T1:app.T2),tt,app.SUBSET.b55a(app.T1:app.T2)) 
+                    %plot(app.UIAxes2,tt,app.DATA{app.SNR}.b55.phase(app.T1:app.T2),tt,app.DATA{app.SNR}.b55.amplitude(app.T1:app.T2))
                 case 3
-                    plot(app.UIAxes2,tt,app.DATA{app.SNR}.b75.phase(app.T1:app.T2),tt,app.DATA{app.SNR}.b75.amplitude(app.T1:app.T2))
+                    plot(app.UIAxes2,tt,app.SUBSET.b75p(app.T1:app.T2),tt,app.SUBSET.b75a(app.T1:app.T2)) 
+%                     plot(app.UIAxes2,tt,app.DATA{app.SNR}.b75.phase(app.T1:app.T2),tt,app.DATA{app.SNR}.b75.amplitude(app.T1:app.T2))
                 case 4
-                    plot(app.UIAxes2,tt,app.DATA{app.SNR}.b95.phase(app.T1:app.T2),tt,app.DATA{app.SNR}.b95.amplitude(app.T1:app.T2))                                  
+                    plot(app.UIAxes2,tt,app.SUBSET.b95p(app.T1:app.T2),tt,app.SUBSET.b95a(app.T1:app.T2)) 
+%                     plot(app.UIAxes2,tt,app.DATA{app.SNR}.b95.phase(app.T1:app.T2),tt,app.DATA{app.SNR}.b95.amplitude(app.T1:app.T2))                                  
             end
-            plot(app.UIAxes4,tt,app.DATA{app.SNR}.best(app.T1:app.T2));
+            plot(app.UIAxes4,tt,app.SUBSET.best(app.T1:app.T2));
             app.getFreq();
         end
         
         
         function results = plotresult_just_band(app)
-            tt=app.DATA{1}.t(app.T1:app.T2);
+            tt=app.SUBSET.t(app.T1:app.T2);
             switch app.BAND
                 case 1
-                    plot(app.UIAxes2,tt,app.DATA{app.SNR}.b35.phase(app.T1:app.T2),tt,app.DATA{app.SNR}.b35.amplitude(app.T1:app.T2))               
+                    plot(app.UIAxes2,tt,app.SUBSET.b35p(app.T1:app.T2),tt,app.SUBSET.b35a(app.T1:app.T2))               
                 case 2
-                    plot(app.UIAxes2,tt,app.DATA{app.SNR}.b55.phase(app.T1:app.T2),tt,app.DATA{app.SNR}.b55.amplitude(app.T1:app.T2))
+                    plot(app.UIAxes2,tt,app.SUBSET.b55p(app.T1:app.T2),tt,app.SUBSET.b55a(app.T1:app.T2))
                 case 3
-                    plot(app.UIAxes2,tt,app.DATA{app.SNR}.b75.phase(app.T1:app.T2),tt,app.DATA{app.SNR}.b75.amplitude(app.T1:app.T2))
+                    plot(app.UIAxes2,tt,app.SUBSET.b75p(app.T1:app.T2),tt,app.SUBSET.b75a(app.T1:app.T2))
                 case 4
-                    plot(app.UIAxes2,tt,app.DATA{app.SNR}.b95.phase(app.T1:app.T2),tt,app.DATA{app.SNR}.b95.amplitude(app.T1:app.T2))                                  
+                    plot(app.UIAxes2,tt,app.SUBSET.b95p(app.T1:app.T2),tt,app.SUBSET.b95a(app.T1:app.T2))                                  
             end
         end
         
         function getFreq(app)
-            ll1=app.DATA{app.SNR}.loc<app.T2;
-            ll2=app.DATA{app.SNR}.loc>app.T1;
+            ll1=app.peakLocations<app.T2;
+            ll2=app.peakLocations>app.T1;
             ll3=ll1 & ll2;
             if any(ll3)
                 for i=1:length(ll3)
                     if ll3(i)==1
                         t1=i;
                         
-                        ff=1/(app.DATA{1}.t(app.DATA{app.SNR}.loc(t1+1))-app.DATA{1}.t(app.DATA{app.SNR}.loc(t1)));
+                        ff=1/(app.SUBSET.t(app.peakLocations(t1+1))-app.SUBSET.t(app.loc(t1)));
                         break
                     end
                 end
@@ -104,23 +107,28 @@ classdef app1_exported < matlab.apps.AppBase
 
         % Code that executes after component creation
         function startupFcn(app)
-%             filez=dir('*_log.mat');
-%             big={};
-%             for i=1:length(filez)
-%                load(filez(i).name);
-%                big{i}=mystruct;
-%                snr(i)=mystruct.SNR;
-%             end
             %Generated Signals
             load('X.mat','X');
             
-            namez={'x','b35p','b35a','b55p','b55a','b75p','b75a','b95p','b95a','best','detection','amp0','amp1','amp2','amp3','snr'}';
-            dtypez={'int32','double','double','double','double','double','double','double','double','int32','int32','double','double','double','double','categorical'};
-            oo=delimitedTextImportOptions('VariableNames',namez,'DataLines',2,'VariableTypes',dtypez);
             %Teensy signals
+            namez={'x','b35p','b35a','b55p','b55a','b75p','b75a','b95p','b95a','best','detection','amp0','amp1','amp2','amp3','snr','counter'}';
+            dtypez={'int32','double','double','double','double','double','double','double','double','int32','int32','double','double','double','double','int32','int32'};
+            oo=delimitedTextImportOptions('VariableNames',namez,'DataLines',2,'VariableTypes',dtypez);
             data=readtable('putty_new.log',oo);
+%             datamat=readmatrix('putty_new.log');
             t=repmat((0:1/2000:X.time_len)',4,1);
             data=addvars(data,t,'Before','x');
+            
+            clean=[X.clean_4 ;X.clean_8 ;X.clean_12; X.clean_16];
+            data=addvars(data,clean);
+            
+            [~,app.peakLocations]=findpeaks(data.clean(1:20001));
+%             datamat=[datamat, t];
+%             datamat2=zeros([20001,18,4]);
+%             datamat2(:,:,1)=datamat(1:20001,:);
+%             datamat2(:,:,2)=datamat(20002:40002,:);
+%             datamat2(:,:,3)=datamat(40003:60003,:);
+%             datamat2(:,:,4)=datamat(60004:80004,:);
             snr=[4,8,12,16];
             
             app.SNRListBox.Items=string(snr);
@@ -141,7 +149,7 @@ classdef app1_exported < matlab.apps.AppBase
         % Value changed function: SNRListBox
         function SNRListBoxValueChanged(app, event)
             app.SNR = app.SNRListBox.Value;
-            row=app.DATA.snr==app.SNR;
+            row=app.DATA.snr==str2double(app.SNR);
             app.SUBSET=app.DATA(row,:);
 %             histogram(app.UIAxes3,app.DATA{app.SNR}.mat);
 %             app.MeanPeakDetectionOffsetTimemsEditField.Value=mean(app.DATA{app.SNR}.mat);
