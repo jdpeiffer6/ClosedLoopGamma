@@ -1,0 +1,388 @@
+classdef app1_exported < matlab.apps.AppBase
+
+    % Properties that correspond to app components
+    properties (Access = public)
+        UIFigure                        matlab.ui.Figure
+        TabGroup                        matlab.ui.container.TabGroup
+        TimeDataTab                     matlab.ui.container.Tab
+        ChooseDataPanel                 matlab.ui.container.Panel
+        SNRListBoxLabel                 matlab.ui.control.Label
+        SNRListBox                      matlab.ui.control.ListBox
+        BandListBoxLabel                matlab.ui.control.Label
+        BandListBox                     matlab.ui.control.ListBox
+        DesiredFrequencyEditFieldLabel  matlab.ui.control.Label
+        DesiredFrequencyEditField       matlab.ui.control.NumericEditField
+        TimeEditFieldLabel              matlab.ui.control.Label
+        TimeEditField                   matlab.ui.control.NumericEditField
+        Label                           matlab.ui.control.Label
+        Time2EditField                  matlab.ui.control.NumericEditField
+        PlotzPanel                      matlab.ui.container.Panel
+        UIAxes                          matlab.ui.control.UIAxes
+        UIAxes2                         matlab.ui.control.UIAxes
+        UIAxes4                         matlab.ui.control.UIAxes
+        HistogramTab                    matlab.ui.container.Tab
+        UIAxes3                         matlab.ui.control.UIAxes
+        MeanPeakDetectionOffsetTimemsEditFieldLabel  matlab.ui.control.Label
+        MeanPeakDetectionOffsetTimemsEditField  matlab.ui.control.NumericEditField
+        MissedPeaksLabel                matlab.ui.control.Label
+        MissedPeaksEditField            matlab.ui.control.NumericEditField
+    end
+
+    
+    properties (Access = public)
+        DATA % holds all data
+        SNR
+        T1 
+        T2
+        BAND
+    end
+    
+    methods (Access = private)
+        
+        function results = plotresult(app)
+            row=app.DATA.snr=='4';
+            dat=app.DATA(row,:);
+            size(dat)
+            app.SNR
+            tt=app.DATA{1}.t(app.T1:app.T2);
+            app.UIAxes.XLim=[tt(1),tt(end)];
+            app.UIAxes2.XLim=[tt(1),tt(end)];
+            app.UIAxes4.XLim=[tt(1),tt(end)];
+            plot(app.UIAxes,tt,app.DATA{app.SNR}.x(app.T1:app.T2),tt,207*app.DATA{app.SNR}.detection(app.T1:app.T2)+514)
+            switch app.BAND
+                case 1
+                    plot(app.UIAxes2,tt,app.DATA{app.SNR}.b35.phase(app.T1:app.T2),tt,app.DATA{app.SNR}.b35.amplitude(app.T1:app.T2))               
+                case 2
+                    plot(app.UIAxes2,tt,app.DATA{app.SNR}.b55.phase(app.T1:app.T2),tt,app.DATA{app.SNR}.b55.amplitude(app.T1:app.T2))
+                case 3
+                    plot(app.UIAxes2,tt,app.DATA{app.SNR}.b75.phase(app.T1:app.T2),tt,app.DATA{app.SNR}.b75.amplitude(app.T1:app.T2))
+                case 4
+                    plot(app.UIAxes2,tt,app.DATA{app.SNR}.b95.phase(app.T1:app.T2),tt,app.DATA{app.SNR}.b95.amplitude(app.T1:app.T2))                                  
+            end
+            plot(app.UIAxes4,tt,app.DATA{app.SNR}.best(app.T1:app.T2));
+            app.getFreq();
+        end
+        
+        
+        function results = plotresult_just_band(app)
+            tt=app.DATA{1}.t(app.T1:app.T2);
+            switch app.BAND
+                case 1
+                    plot(app.UIAxes2,tt,app.DATA{app.SNR}.b35.phase(app.T1:app.T2),tt,app.DATA{app.SNR}.b35.amplitude(app.T1:app.T2))               
+                case 2
+                    plot(app.UIAxes2,tt,app.DATA{app.SNR}.b55.phase(app.T1:app.T2),tt,app.DATA{app.SNR}.b55.amplitude(app.T1:app.T2))
+                case 3
+                    plot(app.UIAxes2,tt,app.DATA{app.SNR}.b75.phase(app.T1:app.T2),tt,app.DATA{app.SNR}.b75.amplitude(app.T1:app.T2))
+                case 4
+                    plot(app.UIAxes2,tt,app.DATA{app.SNR}.b95.phase(app.T1:app.T2),tt,app.DATA{app.SNR}.b95.amplitude(app.T1:app.T2))                                  
+            end
+        end
+        
+        function getFreq(app)
+            ll1=app.DATA{app.SNR}.loc<app.T2;
+            ll2=app.DATA{app.SNR}.loc>app.T1;
+            ll3=ll1 & ll2;
+            if any(ll3)
+                for i=1:length(ll3)
+                    if ll3(i)==1
+                        t1=i;
+                        
+                        ff=1/(app.DATA{1}.t(app.DATA{app.SNR}.loc(t1+1))-app.DATA{1}.t(app.DATA{app.SNR}.loc(t1)));
+                        break
+                    end
+                end
+            else
+                fprintf('No frequency detected\n');
+                ff=-1;
+            end
+            app.UIAxes.Title.String=sprintf('Frequency = %.2f',ff);
+            app.DesiredFrequencyEditField.Value=ff;
+        end
+    end
+    
+
+    % Callbacks that handle component events
+    methods (Access = private)
+
+        % Code that executes after component creation
+        function startupFcn(app)
+%             filez=dir('*_log.mat');
+%             big={};
+%             for i=1:length(filez)
+%                load(filez(i).name);
+%                big{i}=mystruct;
+%                snr(i)=mystruct.SNR;
+%             end
+            %Generated Signals
+            load('X.mat','X');
+            
+            namez={'x','b35p','b35a','b55p','b55a','b75p','b75a','b95p','b95a','best','detection','amp0','amp1','amp2','amp3','snr'}';
+            dtypez={'int32','double','double','double','double','double','double','double','double','int8','int8','double','double','double','double','categorical'};
+            oo=delimitedTextImportOptions('VariableNames',namez,'DataLines',2,'VariableTypes',dtypez);
+            %Teensy signals
+            data=readtable('putty_new.log',oo);
+            t=repmat((0:1/2000:X.time_len)',4,1);
+            data=addvars(data,t,'Before','x');
+            snr=[4,8,12,16];
+            
+            app.SNRListBox.Items=string(snr);
+            
+            app.DATA=data;
+          
+            app.T1=0.001*2000;app.TimeEditField.Value=0.001;
+            app.T2=10*2000;app.Time2EditField.Value=10;
+            app.BAND=1;
+            app.SNR=1;
+            app.UIAxes.YLim=[0 1024];
+            app.UIAxes2.YLim=[-514 514];
+            app.UIAxes4.YLim=[-1 5];
+            
+          
+        end
+
+        % Value changed function: SNRListBox
+        function SNRListBoxValueChanged(app, event)
+            app.SNR = app.SNRListBox.Value;
+           
+%             histogram(app.UIAxes3,app.DATA{app.SNR}.mat);
+%             app.MeanPeakDetectionOffsetTimemsEditField.Value=mean(app.DATA{app.SNR}.mat);
+%             app.MissedPeaksEditField.Value=app.DATA{app.SNR}.frac;
+%             app.UIAxes3.Title.String=sprintf('SNR = %d\n',app.SNR*4);
+            plotresult(app);
+        end
+
+        % Value changed function: BandListBox
+        function BandListBoxValueChanged(app, event)
+            value = app.BandListBox.Value;
+            switch value
+                case '20-50'
+                    app.BAND=1;
+                case '40-70'
+                    app.BAND=2;
+                case '60-90'
+                    app.BAND=3;
+                case '80-110'
+                    app.BAND=4;
+            end
+            plotresult_just_band(app);
+        end
+
+        % Value changed function: TimeEditField
+        function TimeEditFieldValueChanged(app, event)
+            oval=app.TimeEditField.Value;
+            value = floor(app.TimeEditField.Value*2000);
+            app.T1=value;
+            if app.T2<=value
+               app.T2=value+0.1*2000;
+               app.Time2EditField.Value=oval+0.1;
+            end
+            app.plotresult();
+          
+        end
+
+        % Value changed function: Time2EditField
+        function Time2EditFieldValueChanged(app, event)
+            oval=app.Time2EditField.Value;
+            value = floor(app.Time2EditField.Value*2000);
+            
+            app.T2=value;
+            if value<=app.T1
+                app.T1=value-0.1*2000;
+                app.TimeEditField.Value=oval-0.1;
+            end
+            app.plotresult();
+            
+        end
+
+        % Value changed function: DesiredFrequencyEditField
+        function DesiredFrequencyEditFieldValueChanged(app, event)
+            value = app.DesiredFrequencyEditField.Value;
+            fff=app.DATA{app.SNR}.fff;
+            for i=1:length(fff)
+               if fff(i)>value
+                    break
+               end
+            end
+            disp(fff(i))
+            app.T1=app.DATA{app.SNR}.loc(i)-200;
+            app.T2=app.DATA{app.SNR}.loc(i)+200;
+            app.TimeEditField.Value=app.T1/2000;
+            app.Time2EditField.Value=app.T2/2000;
+            app.plotresult();
+        end
+    end
+
+    % Component initialization
+    methods (Access = private)
+
+        % Create UIFigure and components
+        function createComponents(app)
+
+            % Create UIFigure and hide until all components are created
+            app.UIFigure = uifigure('Visible', 'off');
+            app.UIFigure.Position = [0 0 1000 700];
+            app.UIFigure.Name = 'MATLAB App';
+
+            % Create TabGroup
+            app.TabGroup = uitabgroup(app.UIFigure);
+            app.TabGroup.Position = [1 1 1000 700];
+
+            % Create TimeDataTab
+            app.TimeDataTab = uitab(app.TabGroup);
+            app.TimeDataTab.Title = 'Time Data';
+
+            % Create ChooseDataPanel
+            app.ChooseDataPanel = uipanel(app.TimeDataTab);
+            app.ChooseDataPanel.Title = 'Choose Data';
+            app.ChooseDataPanel.FontWeight = 'bold';
+            app.ChooseDataPanel.Position = [1 5 290 670];
+
+            % Create SNRListBoxLabel
+            app.SNRListBoxLabel = uilabel(app.ChooseDataPanel);
+            app.SNRListBoxLabel.HorizontalAlignment = 'right';
+            app.SNRListBoxLabel.Position = [26 621 31 22];
+            app.SNRListBoxLabel.Text = 'SNR';
+
+            % Create SNRListBox
+            app.SNRListBox = uilistbox(app.ChooseDataPanel);
+            app.SNRListBox.Items = {};
+            app.SNRListBox.ValueChangedFcn = createCallbackFcn(app, @SNRListBoxValueChanged, true);
+            app.SNRListBox.Position = [72 571 100 74];
+            app.SNRListBox.Value = {};
+
+            % Create BandListBoxLabel
+            app.BandListBoxLabel = uilabel(app.ChooseDataPanel);
+            app.BandListBoxLabel.HorizontalAlignment = 'right';
+            app.BandListBoxLabel.Position = [21 516 34 22];
+            app.BandListBoxLabel.Text = 'Band';
+
+            % Create BandListBox
+            app.BandListBox = uilistbox(app.ChooseDataPanel);
+            app.BandListBox.Items = {'20-50', '40-70', '60-90', '80-110'};
+            app.BandListBox.ValueChangedFcn = createCallbackFcn(app, @BandListBoxValueChanged, true);
+            app.BandListBox.Position = [70 466 100 74];
+            app.BandListBox.Value = '20-50';
+
+            % Create DesiredFrequencyEditFieldLabel
+            app.DesiredFrequencyEditFieldLabel = uilabel(app.ChooseDataPanel);
+            app.DesiredFrequencyEditFieldLabel.HorizontalAlignment = 'right';
+            app.DesiredFrequencyEditFieldLabel.Position = [21 428 110 22];
+            app.DesiredFrequencyEditFieldLabel.Text = 'Desired Frequency:';
+
+            % Create DesiredFrequencyEditField
+            app.DesiredFrequencyEditField = uieditfield(app.ChooseDataPanel, 'numeric');
+            app.DesiredFrequencyEditField.ValueChangedFcn = createCallbackFcn(app, @DesiredFrequencyEditFieldValueChanged, true);
+            app.DesiredFrequencyEditField.Position = [146 428 100 22];
+
+            % Create TimeEditFieldLabel
+            app.TimeEditFieldLabel = uilabel(app.ChooseDataPanel);
+            app.TimeEditFieldLabel.HorizontalAlignment = 'right';
+            app.TimeEditFieldLabel.Position = [37 383 35 22];
+            app.TimeEditFieldLabel.Text = 'Time:';
+
+            % Create TimeEditField
+            app.TimeEditField = uieditfield(app.ChooseDataPanel, 'numeric');
+            app.TimeEditField.ValueChangedFcn = createCallbackFcn(app, @TimeEditFieldValueChanged, true);
+            app.TimeEditField.Position = [87 383 40 22];
+
+            % Create Label
+            app.Label = uilabel(app.ChooseDataPanel);
+            app.Label.HorizontalAlignment = 'right';
+            app.Label.Position = [131 383 25 22];
+            app.Label.Text = '-';
+
+            % Create Time2EditField
+            app.Time2EditField = uieditfield(app.ChooseDataPanel, 'numeric');
+            app.Time2EditField.ValueChangedFcn = createCallbackFcn(app, @Time2EditFieldValueChanged, true);
+            app.Time2EditField.Position = [171 383 52 22];
+
+            % Create PlotzPanel
+            app.PlotzPanel = uipanel(app.TimeDataTab);
+            app.PlotzPanel.Title = 'Plotz';
+            app.PlotzPanel.Position = [291 5 710 670];
+
+            % Create UIAxes
+            app.UIAxes = uiaxes(app.PlotzPanel);
+            title(app.UIAxes, 'Signal and Detection')
+            xlabel(app.UIAxes, 'Time')
+            ylabel(app.UIAxes, 'Value')
+            app.UIAxes.Position = [1 450 710 200];
+
+            % Create UIAxes2
+            app.UIAxes2 = uiaxes(app.PlotzPanel);
+            title(app.UIAxes2, 'Filter Bank')
+            xlabel(app.UIAxes2, 'Time')
+            ylabel(app.UIAxes2, 'Value')
+            app.UIAxes2.Position = [1 255 710 185];
+
+            % Create UIAxes4
+            app.UIAxes4 = uiaxes(app.PlotzPanel);
+            title(app.UIAxes4, 'Detection bank')
+            xlabel(app.UIAxes4, 'X')
+            ylabel(app.UIAxes4, 'Bank Number')
+            app.UIAxes4.Position = [1 25 710 215];
+
+            % Create HistogramTab
+            app.HistogramTab = uitab(app.TabGroup);
+            app.HistogramTab.Title = 'Histogram';
+
+            % Create UIAxes3
+            app.UIAxes3 = uiaxes(app.HistogramTab);
+            title(app.UIAxes3, 'Title')
+            xlabel(app.UIAxes3, 'Delay Time (0 is true peak)')
+            ylabel(app.UIAxes3, 'Number of Occurances')
+            app.UIAxes3.Position = [30 145 761 505];
+
+            % Create MeanPeakDetectionOffsetTimemsEditFieldLabel
+            app.MeanPeakDetectionOffsetTimemsEditFieldLabel = uilabel(app.HistogramTab);
+            app.MeanPeakDetectionOffsetTimemsEditFieldLabel.HorizontalAlignment = 'right';
+            app.MeanPeakDetectionOffsetTimemsEditFieldLabel.Position = [91 83 213 22];
+            app.MeanPeakDetectionOffsetTimemsEditFieldLabel.Text = 'Mean Peak Detection Offset Time (ms)';
+
+            % Create MeanPeakDetectionOffsetTimemsEditField
+            app.MeanPeakDetectionOffsetTimemsEditField = uieditfield(app.HistogramTab, 'numeric');
+            app.MeanPeakDetectionOffsetTimemsEditField.Position = [319 83 100 22];
+
+            % Create MissedPeaksLabel
+            app.MissedPeaksLabel = uilabel(app.HistogramTab);
+            app.MissedPeaksLabel.HorizontalAlignment = 'right';
+            app.MissedPeaksLabel.Position = [101 43 102 22];
+            app.MissedPeaksLabel.Text = 'Missed Peaks (%)';
+
+            % Create MissedPeaksEditField
+            app.MissedPeaksEditField = uieditfield(app.HistogramTab, 'numeric');
+            app.MissedPeaksEditField.Position = [218 43 100 22];
+
+            % Show the figure after all components are created
+            app.UIFigure.Visible = 'on';
+        end
+    end
+
+    % App creation and deletion
+    methods (Access = public)
+
+        % Construct app
+        function app = app1_exported
+
+            % Create UIFigure and components
+            createComponents(app)
+
+            % Register the app with App Designer
+            registerApp(app, app.UIFigure)
+
+            % Execute the startup function
+            runStartupFcn(app, @startupFcn)
+
+            if nargout == 0
+                clear app
+            end
+        end
+
+        % Code that executes before app deletion
+        function delete(app)
+
+            % Delete UIFigure when app is deleted
+            delete(app.UIFigure)
+        end
+    end
+end

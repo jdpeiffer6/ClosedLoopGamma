@@ -7,7 +7,10 @@
 
 #include "buffer.hpp"       
 #include "20_110filter.h"     //filter coeficcients
-#include "test.h"             //test dataset. instead of reading from ADC, just read from this vector
+#include "test_SNR4.h"             //test dataset. instead of reading from ADC, just read from this vector
+#include "test_SNR8.h"   
+#include "test_SNR12.h"   
+#include "test_SNR16.h"   
 
 //For interrupts
 volatile unsigned long currentRead;
@@ -37,7 +40,6 @@ void setup() {
   Serial.begin(9600);
   delay(5000);
   while (!Serial);
-  pinMode(ADC_PIN, INPUT);
   interruptTimer.begin(readADC, SAMPLING_RATE*10);  //slowed down for putty
 
 
@@ -48,9 +50,10 @@ void setup() {
 //==========
 // Main Loop
 //==========
-
-int i=0;
+int* x=test_SNR4;
+int counter=0;
 int currentbest = 0;
+int SNR=4;
 void loop() {
   //gets ADC (or read from vector at 2 kHz)
   noInterrupts();
@@ -90,14 +93,33 @@ void loop() {
     Serial.print(',');
     Serial.print(amplitudes[2]);
     Serial.print(',');
-    Serial.println(amplitudes[3]);
+    Serial.print(amplitudes[3]);
+    Serial.print(',');
+    Serial.println(SNR);
 
   } 
   //only iterates through vector once
-  if(i>=LEN){
-   while(1){
-    delay(100);
-   }
+  if(counter>=LEN){
+    switch (SNR){
+      case 4:
+        SNR=8;
+        x=test_SNR8;
+      break;
+      case 8:
+        SNR=12;
+        x=test_SNR12;
+      break;
+      case 12:
+        SNR=16;
+        x=test_SNR16;
+      break;
+      case 16:
+        while(1){
+          delay(100);
+        }
+      break;
+    }
+    counter=0;
   }
 }
 
@@ -126,8 +148,12 @@ int getMaxAmplitude(double* amplitudes) {
 
 //this runs every interrupt, normally (above) we would read from ADC, but since we are using generated data, just read from x
 void readADC(void) {
-  currentRead = x[i];
+  currentRead = x[counter];
   computeFlag = 1;
-  i++;
+  counter++;
   
 }
+
+//=============
+//End Functions
+//=============
