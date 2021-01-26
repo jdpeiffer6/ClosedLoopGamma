@@ -46,9 +46,11 @@ class buffer
 
   public:
     buffer(double* APh, double* BPh, uint PHORDER, double* AAmp, double* BAmp, uint AMPORDER, double threshol, int *STAT);
+    void reset(void);
     void plt(double Yadd, int End);
     void plt(double Yadd);
     double insert(double);
+    ~buffer();
 
 };
 

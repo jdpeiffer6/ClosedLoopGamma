@@ -33,7 +33,17 @@ buffer::buffer(double *APh, double *BPh, uint PHORDER, double *AAmp, double *BAm
 
 }
 
+void buffer::reset(void){
+  for (size_t i = 0; i < PhSize; i++)
+  {
+    yPh[i] = xPh[i] = 0.00; //pads with 0
+  }
 
+  for (size_t i = 0; i < AmpSize; i++)
+  {
+    yAmp[i] = xAmp[i] = 0.00; //pads with 0
+  }
+}
 void buffer::plt(double Yadd, int End)
 {
   Serial.print(*yPhCurrent + Yadd, 6);
@@ -157,7 +167,8 @@ double buffer::insert(double in)
   return peakAmplitude;
 }
 
-
+buffer::~buffer(){
+  }
 
 
 buffer_low_band::buffer_low_band(double *APh, double *BPh, uint PHORDER, double *AAmp, double *BAmp, uint AMPORDER, double threshol, int *STAT) : aPh(APh), bPh(BPh), aAmp(AAmp), bAmp(BAmp), PhSize(PHORDER + 1), AmpSize(AMPORDER + 1), thresh(threshol), stat(STAT)

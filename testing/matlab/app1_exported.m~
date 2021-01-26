@@ -48,33 +48,31 @@ classdef app1_exported < matlab.apps.AppBase
             plot(app.UIAxes,tt,app.SUBSET.x(app.T1:app.T2),tt,207*app.SUBSET.detection(app.T1:app.T2)+514)
             switch app.BAND
                 case 1
-                    plot(app.UIAxes2,tt,app.SUBSET.b35p(app.T1:app.T2),tt,app.SUBSET.b35a(app.T1:app.T2))             
+                    plot(app.UIAxes2,tt,app.SUBSET.b35p(app.T1:app.T2))
+                    %,tt,app.DATA{app.SNR}.b35.amplitude(app.T1:app.T2))               
                 case 2
-                    plot(app.UIAxes2,tt,app.SUBSET.b55p(app.T1:app.T2),tt,app.SUBSET.b55a(app.T1:app.T2)) 
-                    %plot(app.UIAxes2,tt,app.DATA{app.SNR}.b55.phase(app.T1:app.T2),tt,app.DATA{app.SNR}.b55.amplitude(app.T1:app.T2))
+                    plot(app.UIAxes2,tt,app.DATA{app.SNR}.b55.phase(app.T1:app.T2),tt,app.DATA{app.SNR}.b55.amplitude(app.T1:app.T2))
                 case 3
-                    plot(app.UIAxes2,tt,app.SUBSET.b75p(app.T1:app.T2),tt,app.SUBSET.b75a(app.T1:app.T2)) 
-%                     plot(app.UIAxes2,tt,app.DATA{app.SNR}.b75.phase(app.T1:app.T2),tt,app.DATA{app.SNR}.b75.amplitude(app.T1:app.T2))
+                    plot(app.UIAxes2,tt,app.DATA{app.SNR}.b75.phase(app.T1:app.T2),tt,app.DATA{app.SNR}.b75.amplitude(app.T1:app.T2))
                 case 4
-                    plot(app.UIAxes2,tt,app.SUBSET.b95p(app.T1:app.T2),tt,app.SUBSET.b95a(app.T1:app.T2)) 
-%                     plot(app.UIAxes2,tt,app.DATA{app.SNR}.b95.phase(app.T1:app.T2),tt,app.DATA{app.SNR}.b95.amplitude(app.T1:app.T2))                                  
+                    plot(app.UIAxes2,tt,app.DATA{app.SNR}.b95.phase(app.T1:app.T2),tt,app.DATA{app.SNR}.b95.amplitude(app.T1:app.T2))                                  
             end
-            plot(app.UIAxes4,tt,app.SUBSET.best(app.T1:app.T2));
-            %app.getFreq();
+            plot(app.UIAxes4,tt,app.DATA{app.SNR}.best(app.T1:app.T2));
+            app.getFreq();
         end
         
         
         function results = plotresult_just_band(app)
-            tt=app.SUBSET.t(app.T1:app.T2);
+            tt=app.DATA{1}.t(app.T1:app.T2);
             switch app.BAND
                 case 1
-                    plot(app.UIAxes2,tt,app.SUBSET.b35p(app.T1:app.T2),tt,app.SUBSET.b35a(app.T1:app.T2))               
+                    plot(app.UIAxes2,tt,app.DATA{app.SNR}.b35.phase(app.T1:app.T2),tt,app.DATA{app.SNR}.b35.amplitude(app.T1:app.T2))               
                 case 2
-                    plot(app.UIAxes2,tt,app.SUBSET.b55p(app.T1:app.T2),tt,app.SUBSET.b55a(app.T1:app.T2))
+                    plot(app.UIAxes2,tt,app.DATA{app.SNR}.b55.phase(app.T1:app.T2),tt,app.DATA{app.SNR}.b55.amplitude(app.T1:app.T2))
                 case 3
-                    plot(app.UIAxes2,tt,app.SUBSET.b75p(app.T1:app.T2),tt,app.SUBSET.b75a(app.T1:app.T2))
+                    plot(app.UIAxes2,tt,app.DATA{app.SNR}.b75.phase(app.T1:app.T2),tt,app.DATA{app.SNR}.b75.amplitude(app.T1:app.T2))
                 case 4
-                    plot(app.UIAxes2,tt,app.SUBSET.b95p(app.T1:app.T2),tt,app.SUBSET.b95a(app.T1:app.T2))                                  
+                    plot(app.UIAxes2,tt,app.DATA{app.SNR}.b95.phase(app.T1:app.T2),tt,app.DATA{app.SNR}.b95.amplitude(app.T1:app.T2))                                  
             end
         end
         
@@ -106,13 +104,20 @@ classdef app1_exported < matlab.apps.AppBase
 
         % Code that executes after component creation
         function startupFcn(app)
+%             filez=dir('*_log.mat');
+%             big={};
+%             for i=1:length(filez)
+%                load(filez(i).name);
+%                big{i}=mystruct;
+%                snr(i)=mystruct.SNR;
+%             end
             %Generated Signals
             load('X.mat','X');
             
-            %Teensy signals
-            namez={'x','b35p','b35a','b55p','b55a','b75p','b75a','b95p','b95a','best','detection','amp0','amp1','amp2','amp3','snr','counter'}';
-            dtypez={'int32','double','double','double','double','double','double','double','double','int32','int32','double','double','double','double','categorical','int32'};
+            namez={'x','b35p','b35a','b55p','b55a','b75p','b75a','b95p','b95a','best','detection','amp0','amp1','amp2','amp3','snr'}';
+            dtypez={'int32','double','double','double','double','double','double','double','double','int32','int32','double','double','double','double','categorical'};
             oo=delimitedTextImportOptions('VariableNames',namez,'DataLines',2,'VariableTypes',dtypez);
+            %Teensy signals
             data=readtable('putty_new.log',oo);
             t=repmat((0:1/2000:X.time_len)',4,1);
             data=addvars(data,t,'Before','x');
