@@ -43,7 +43,7 @@ class buffer
     double* yAmp_L2;
 
     //counter to stop double detection
-    unsigned elapsed;
+    unsigned previous_detect;
 
     //reporting phase events
     int* stat;

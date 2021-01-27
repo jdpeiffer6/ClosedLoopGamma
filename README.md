@@ -1,12 +1,13 @@
 # Fixes
 ### Double Detection
 Sometimes multiple events are detected in close proximity to each other.
+![Double detect](./.images/before_counter.png)
 
 **Solution 1**: Add a delay of samples in which another POI is prohibited from triggering.  
 This works O.K but since the frequency of the signals varies so widely, even between banks, it is hard to catch them all.  
-
-**Solution 2**: Dictate that POI must occur in a certain order, for instance peak, +/- cross, trough, -/+ zero cross and reject any detection out of that order.
-
+![Solution 1](./.images/after_counter.png)
+**Solution 2**: Dictate that POI must occur in a certain order, for instance peak, +/- cross, trough, -/+ zero cross and reject any detection out of that order.  
+![Solution 2](./.images/after_solution2.png)
 ### False Detection
 Sometimes multiple events are detected in close proximity to each other.
 

@@ -32,7 +32,7 @@ buffer::buffer(double *APh, double *BPh, uint PHORDER, double *AAmp, double *BAm
   }
 
   //start counter
-  elapsed = 0;
+  previous_detect = 0;
 
 }
 
@@ -156,35 +156,30 @@ double buffer::insert(double in)
   //================
   // Phase Detection
   //================
-  elapsed++;
 
-  if (elapsed > 4) {      //does not allow detection within 4 samples of a previous detection
-
-    //peak (1 sample delay)
-    if (*yPh_L1 > *yPh_L2 && *yPh_L1 > *yPhCurrent && peakAmplitude > thresh) {
-      *stat = 2;
-      elapsed = 0;
-    }
-    //trough (1 sample delay)
-    else if (*yPh_L1 < *yPh_L2 && *yPh_L1 < *yPhCurrent && peakAmplitude > (-1.0) * thresh) {
-      *stat = -2;
-      elapsed = 0;
-    }
-    //+- 0 cross
-    else if (*yPhCurrent < 0.0 && *yPh_L1 > 0.0) {
-      *stat = -1;
-      elapsed = 0;
-    }
-    //-+ 0 cross
-    else if (*yPhCurrent > 0.0 && *yPh_L1 < 0.0) {
-      *stat = 1;
-      elapsed = 0;
-    } else {
-      *stat = 0;
-    }
+  //peak (1 sample delay)
+  if (*yPh_L1 > *yPh_L2 && *yPh_L1 > *yPhCurrent && peakAmplitude > thresh && previous_detect == 0) {
+    *stat = 2;
+    previous_detect = 1;
+  }
+  //trough (1 sample delay)
+  else if (*yPh_L1 < *yPh_L2 && *yPh_L1 < *yPhCurrent && peakAmplitude > (-1.0) * thresh && previous_detect == 2) {
+    *stat = -2;
+    previous_detect = 3;
+  }
+  //+- 0 cross
+  else if (*yPhCurrent < 0.0 && *yPh_L1 > 0.0 && previous_detect == 1) {
+    *stat = -1;
+    previous_detect = 2;
+  }
+  //-+ 0 cross
+  else if (*yPhCurrent > 0.0 && *yPh_L1 < 0.0 && previous_detect == 3) {
+    *stat = 1;
+    previous_detect = 0;
   } else {
     *stat = 0;
   }
+
 
 
 
