@@ -157,10 +157,49 @@ classdef app1_exported < matlab.apps.AppBase
             app.SNR = app.SNRListBox.Value;
             row=app.DATA.snr==str2double(app.SNR);
             app.SUBSET=app.DATA(row,:);
-%             histogram(app.UIAxes3,app.DATA{app.SNR}.mat);
-%             app.MeanPeakDetectionOffsetTimemsEditField.Value=mean(app.DATA{app.SNR}.mat);
-%             app.MissedPeaksEditField.Value=app.DATA{app.SNR}.frac;
-%             app.UIAxes3.Title.String=sprintf('SNR = %d\n',app.SNR*4);
+            filterpeaks=app.SUBSET.detection>1.5;
+            range=10;
+            missed=0;
+            checkat=app.peakLocations;
+            mat=zeros(length(checkat),1);
+            matrow=1;
+            for i=1:length(checkat)
+                look=checkat(i);
+                if look<range+1
+                    start=1;
+                    stop=look+range;
+                else
+                    start=look-range;
+                    stop=look+range;
+                end
+                if any(filterpeaks(start:stop))
+                    for j=start:stop
+                        if filterpeaks(j)==1
+                            diff=look-j;
+                            mat(matrow)=diff;
+                            matrow=matrow+1;
+                            break
+                        end
+                    end
+                else
+%                     fprintf(':(\n');
+                    missed=missed+1;
+                end
+            end
+%             fprintf('Missed: %d\n',missed);
+            for i=length(mat):-1:1
+                if mat(i)~=0
+                    mat=mat(1:i);
+                    break
+                end
+            end
+            mat=mat*1/2000*10^3;
+            totalpeaks=size(mat,1);
+            h=histogram(app.UIAxes3,mat);
+%             morebins(h);
+            app.MeanPeakDetectionOffsetTimemsEditField.Value=mean(mat);
+            app.MissedPeaksEditField.Value=100*(missed/totalpeaks);
+            app.UIAxes3.Title.String=sprintf('SNR = %d\n',str2double(app.SNR));
             plotresult(app);
         end
 
