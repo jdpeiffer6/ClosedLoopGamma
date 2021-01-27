@@ -31,6 +31,9 @@ buffer::buffer(double *APh, double *BPh, uint PHORDER, double *AAmp, double *BAm
     yAmp[i] = xAmp[i] = 0.00; //pads with 0
   }
 
+  //start counter
+  previous_detect = 0;
+
 }
 
 void buffer::plt(double Yadd, int End)
@@ -155,23 +158,32 @@ double buffer::insert(double in)
   //================
 
   //peak (1 sample delay)
-  if (*yPh_L1 > *yPh_L2 && *yPh_L1 > *yPhCurrent && peakAmplitude > thresh) {
+  if (*yPh_L1 > *yPh_L2 && *yPh_L1 > *yPhCurrent && peakAmplitude > thresh && previous_detect == 0) {
     *stat = 2;
+    previous_detect = 1;
   }
   //trough (1 sample delay)
-  else if (*yPh_L1 < *yPh_L2 && *yPh_L1 < *yPhCurrent && peakAmplitude > (-1.0) * thresh) {
+  else if (*yPh_L1 < *yPh_L2 && *yPh_L1 < *yPhCurrent && peakAmplitude > (-1.0) * thresh && previous_detect == 2) {
     *stat = -2;
+    previous_detect = 3;
   }
   //+- 0 cross
-  else if (*yPhCurrent < 0.0 && *yPh_L1 > 0.0) {
+  else if (*yPhCurrent < 0.0 && *yPh_L1 > 0.0 && previous_detect == 1) {
     *stat = -1;
+    previous_detect = 2;
   }
   //-+ 0 cross
-  else if (*yPhCurrent > 0.0 && *yPh_L1 < 0.0) {
+  else if (*yPhCurrent > 0.0 && *yPh_L1 < 0.0 && previous_detect == 3) {
     *stat = 1;
+    previous_detect = 0;
   } else {
     *stat = 0;
   }
+
+
+
+
+
   return peakAmplitude;
 }
 
