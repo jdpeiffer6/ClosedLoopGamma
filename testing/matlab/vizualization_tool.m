@@ -113,6 +113,15 @@ classdef vizualization_tool < matlab.apps.AppBase
                 ff{i}=filez(i).name;
             end
             app.FIlesListBox.Items=ff;
+            
+            snr=[4,8,12,16];           
+            app.SNRListBox.Items=string(snr);
+            app.UIAxes.YLim=[0 1024];
+            app.UIAxes2.YLim=[-514 514];
+            app.UIAxes4.YLim=[-1 5];
+            app.SNR = '4';
+            app.SNRListBox.Value='4';
+            
 %             app.FIlesListBox.
         end
 
@@ -230,6 +239,25 @@ classdef vizualization_tool < matlab.apps.AppBase
 
         % Value changed function: FIlesListBox
         function FIlesListBoxValueChanged(app, event)
+% x_no=1;
+% 
+% b35p=2;
+% b35a=3;
+% 
+% b55p=4;
+% b55a=5;
+% 
+% b75p=6;
+% b75a=7;
+% 
+% b95p=8;
+% b95a=9;
+% best_no=10;
+% detection_no=11;
+% amp_data=12:15;
+% trial_no=16;
+
+            
             value = app.FIlesListBox.Value;
             load('X.mat','X');
             
@@ -251,18 +279,13 @@ classdef vizualization_tool < matlab.apps.AppBase
                 fff(i)=1/(t(app.peakLocations(i+1))-t(app.peakLocations(i)));
             end
             app.frequencies=fff(1:end-1);
-            snr=[4,8,12,16];           
-            app.SNRListBox.Items=string(snr);
+            
             app.DATA=data;
-            app.T1=0.001*2000;app.TimeEditField.Value=0.001;
-            app.T2=10*2000;app.Time2EditField.Value=10;
-            app.BAND=1;
-            app.SNR=1;
-            app.UIAxes.YLim=[0 1024];
-            app.UIAxes2.YLim=[-514 514];
-            app.UIAxes4.YLim=[-1 5];
-            app.SNR = '4';
-            app.SNRListBox.Value='4';
+            if isempty(app.T1)
+                app.T1=0.001*2000;app.TimeEditField.Value=0.001;
+                app.T2=10*2000;app.Time2EditField.Value=10;
+                 app.BAND=1;
+            end
             row=app.DATA.snr==str2double(app.SNR);
             app.SUBSET=app.DATA(row,:);
             app.SNRListBoxValueChanged();
