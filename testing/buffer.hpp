@@ -40,6 +40,7 @@ class buffer
     double* yPh_L1;
     double* yPh_L2;
     double* yAmp_L1;
+    double* yAmp_L2;
 
     //reporting phase events
     int* stat;
@@ -51,4 +52,5 @@ class buffer
     double insert(double);
 
 };
-};
+
+}; //end namespace jd

@@ -33,7 +33,6 @@ buffer::buffer(double *APh, double *BPh, uint PHORDER, double *AAmp, double *BAm
 
 }
 
-
 void buffer::plt(double Yadd, int End)
 {
   Serial.print(*yPhCurrent + Yadd, 6);
@@ -51,8 +50,9 @@ void buffer::plt(double Yadd)
 
 double buffer::insert(double in)
 {
-  //pushes the index and if it goes too far, loops back
-
+  //===========================
+  //MOVE BUFFER AND LOOP AROUND
+  //===========================
   //THIS COULD BE OPTIMIZED
   if (++xPhCurrent > xPhEnd)
   {
@@ -81,7 +81,11 @@ double buffer::insert(double in)
   xAmpItr = xAmpCurrent;
   yAmpItr = yAmpCurrent;
 
-  //filters
+  //=============
+  //IIR FILTERING
+  //=============
+
+  //Phase
   for (size_t i = 0; i < PhSize; i++)
   {
     *yPhCurrent -= (*yPhItr--) * aPh[i];
@@ -94,6 +98,7 @@ double buffer::insert(double in)
     }
   }
 
+  //Amplitude
   for (size_t i = 0; i < AmpSize; i++)
   {
     *yAmpCurrent -= (*yAmpItr--) * aAmp[i];
@@ -106,45 +111,58 @@ double buffer::insert(double in)
     }
   }
 
-  //if peak or trough
+  //=============================
+  //PHASE AND AMPLITUDE DETECTION
+  //=============================
+
+  //sets 1 sample delay
   if (yPhCurrent - 1 < yPh)
   {
     yPh_L1 = yPhEnd;
     yPh_L2 = yPh_L1 - 1;
     yAmp_L1 = yAmpEnd;
+    yAmp_L2 = yAmp_L1 - 1;
   }
   else if (yPhCurrent - 1 == yPh)
   {
     yPh_L1 = yPh;
     yPh_L2 = yPhEnd;
     yAmp_L1 = yAmp;
+    yAmp_L2 = yAmpEnd;
   }
   else
   {
     yPh_L1 = yPhCurrent - 1;
     yPh_L2 = yPh_L1 - 1;
     yAmp_L1 = yAmpCurrent - 1;
+    yAmp_L2 = yAmp_L1 - 1;
   }
 
-  //peak in phase(1 sample delay)
-  if (*yPh_L1 > *yPh_L2 && *yPh_L1 > *yPhCurrent) {
+  //====================
+  // Amplitude Detection
+  //====================
+  //peak
+  if (*yAmp_L1 > *yAmp_L2 && *yAmp_L1 > *yAmpCurrent && *yAmp_L1 > thresh) {
     peakAmplitude = *yAmp_L1;
-    if (*yAmp_L1 > thresh)
-    {
-      *stat = 2;
-      
-    }
   }
-  //trough in phase (1 sample delay)
-  else if (*yPh_L1 < *yPh_L2 && *yPh_L1 < *yPhCurrent) {
-    peakAmplitude = *yAmp_L1*(-1.0);
-    if (*yPh_L1 < (-1.0) * thresh) //could maybe speed that up
-    {
-      *stat = -2;
-      
-    }
+  //trough (1 sample delay)
+  else if (*yAmp_L1 < *yAmp_L2 && *yAmp_L1 < *yAmpCurrent && *yAmp_L1 < (-1.0) * thresh) {
+    peakAmplitude = *yAmp_L1 * (-1.0);
+
   }
-   //+- 0 cross
+  //================
+  // Phase Detection
+  //================
+
+  //peak (1 sample delay)
+  if (*yPh_L1 > *yPh_L2 && *yPh_L1 > *yPhCurrent && peakAmplitude > thresh) {
+    *stat = 2;
+  }
+  //trough (1 sample delay)
+  else if (*yPh_L1 < *yPh_L2 && *yPh_L1 < *yPhCurrent && peakAmplitude > (-1.0) * thresh) {
+    *stat = -2;
+  }
+  //+- 0 cross
   else if (*yPhCurrent < 0.0 && *yPh_L1 > 0.0) {
     *stat = -1;
   }
@@ -156,4 +174,6 @@ double buffer::insert(double in)
   }
   return peakAmplitude;
 }
-}; // namespace jd
+
+
+}; // end namespace jd
