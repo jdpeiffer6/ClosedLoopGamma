@@ -17,6 +17,6 @@ Sometimes detected peaks are not the real peaks!
 **Solution 2**: Increase how many samples _after_ the peak/trough we keep track of. Currently only have 1 after and 1 before. This could increase to 3 after and 1 before!
 
 ### Band Switching
-![Band switching issue](./.images/band_switching_issue.png)
+![Band switching issue](./.images/band_switching_issue.png)  
 **Solution 1**: Require a band to be the highest band for 5-10 samples before it switches
 
