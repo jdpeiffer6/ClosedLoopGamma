@@ -5,9 +5,12 @@
 //Updated 1/27/2021
 //J.D. Peiffer
 
-//Variables
-unsigned current_bank=0; //not sure about 0
-unsigned alt_bank_counter=0;
+//============
+// Definitions
+//============
+
+unsigned current_bank = 0;
+unsigned alt_bank_counter = 0;
 #define alt_bank_thresh 50        //how many samples the other must be bigger for
 
 #include "buffer.hpp"
@@ -18,11 +21,6 @@ unsigned alt_bank_counter=0;
 #include "test_SNR16.h"
 
 #define thresh 100 //TRIGGERING THRESHOLD! Range of 0-512
-
-//Prototypes
-int getMaxAmplitude(double* amplitudes);
-void clearAmplitdues(void);
-int getMaxAmplitude(double* amplitudes,unsigned* current,unsigned* counter);
 
 //Data locations that filters will continously update
 int phaseDetect4[4] = {0, 0, 0, 0};            //keeps track of what phase each filter is at
@@ -37,7 +35,16 @@ double amplitudes12[4] = {0.0, 0.0, 0.0, 0.0};
 int phaseDetect16[4] = {0, 0, 0, 0};
 double amplitudes16[4] = {0.0, 0.0, 0.0, 0.0};
 
-//Initializes filters
+//===========
+// Prototypes
+//===========
+
+int getMaxAmplitude(double* amplitudes, unsigned* current, unsigned* counter);
+
+//===========
+// Buffers
+//===========
+
 jd::buffer band4_20_50(a_20_50_2, b_20_50_2, 2, a_20_50_4, b_20_50_4, 4, thresh, &phaseDetect4[0]);
 jd::buffer band4_40_70(a_40_70_2, b_40_70_2, 2, a_40_70_4, b_40_70_4, 4, thresh, &phaseDetect4[1]);
 jd::buffer band4_60_90(a_60_90_2, b_60_90_2, 2, a_60_90_4, b_60_90_4, 4, thresh, &phaseDetect4[2]);
@@ -58,6 +65,9 @@ jd::buffer band16_40_70(a_40_70_2, b_40_70_2, 2, a_40_70_4, b_40_70_4, 4, thresh
 jd::buffer band16_60_90(a_60_90_2, b_60_90_2, 2, a_60_90_4, b_60_90_4, 4, thresh, &phaseDetect16[2]);
 jd::buffer band16_80_110(a_80_110_2, b_80_110_2, 2, a_80_110_4, b_80_110_4, 4, thresh, &phaseDetect16[3]);
 
+//===========
+// Setup
+//===========
 
 void setup() {
   Serial.begin(9600);
@@ -94,7 +104,7 @@ void loop() {
     band4_40_70.plt(0);
     band4_60_90.plt(0);
     band4_80_110.plt(0);
-    currentbest = getMaxAmplitude(amplitudes4,&current_bank,&alt_bank_counter);
+    currentbest = getMaxAmplitude(amplitudes4, &current_bank, &alt_bank_counter);
     Serial.print(currentbest);
     Serial.print(',');
     Serial.print(phaseDetect4[currentbest]);
@@ -134,7 +144,7 @@ void loop() {
     band8_40_70.plt(0);
     band8_60_90.plt(0);
     band8_80_110.plt(0);
-    currentbest = getMaxAmplitude(amplitudes8,&current_bank,&alt_bank_counter);
+    currentbest = getMaxAmplitude(amplitudes8, &current_bank, &alt_bank_counter);
     Serial.print(currentbest);
     Serial.print(',');
     Serial.print(phaseDetect8[currentbest]);
@@ -174,7 +184,7 @@ void loop() {
     band12_40_70.plt(0);
     band12_60_90.plt(0);
     band12_80_110.plt(0);
-    currentbest = getMaxAmplitude(amplitudes12,&current_bank,&alt_bank_counter);
+    currentbest = getMaxAmplitude(amplitudes12, &current_bank, &alt_bank_counter);
     Serial.print(currentbest);
     Serial.print(',');
     Serial.print(phaseDetect12[currentbest]);
@@ -214,7 +224,7 @@ void loop() {
     band16_40_70.plt(0);
     band16_60_90.plt(0);
     band16_80_110.plt(0);
-    currentbest = getMaxAmplitude(amplitudes16,&current_bank,&alt_bank_counter);
+    currentbest = getMaxAmplitude(amplitudes16, &current_bank, &alt_bank_counter);
     Serial.print(currentbest);
     Serial.print(',');
     Serial.print(phaseDetect16[currentbest]);
@@ -249,7 +259,7 @@ void loop() {
 //=========
 
 //decides which bank has the highest amplitude
-int getMaxAmplitude(double* amplitudes,unsigned* current,unsigned* counter) {
+int getMaxAmplitude(double* amplitudes, unsigned* current, unsigned* counter) {
   double maxx = 0.0;
   int maxind = 0;
   for (int i = 0; i < 4; i++) {
@@ -260,17 +270,17 @@ int getMaxAmplitude(double* amplitudes,unsigned* current,unsigned* counter) {
   }
 
   //back switching things
-  if(maxind==*current){
-    *counter=0;
-  }else{
-    if(*counter < alt_bank_thresh){
+  if (maxind == *current) {
+    *counter = 0;
+  } else {
+    if (*counter < alt_bank_thresh) {
       (*counter)++;
-      maxind=*current;
-    }else{
-      counter=0;
-      *current=maxind;
+      maxind = *current;
+    } else {
+      counter = 0;
+      *current = maxind;
     }
   }
-  
+
   return maxind;
 }

@@ -18,5 +18,8 @@ Sometimes detected peaks are not the real peaks!
 
 ### Band Switching
 ![Band switching issue](./.images/band_switching_issue.png)  
-**Solution 1**: Require a band to be the highest band for 5-10 samples before it switches
+**Solution 1**: Require a band to be the highest band for 50 samples before it switches. Another idea could be to have this length be different for different bands since they are different frequencies, but I am not sure that is necessary at this time.  
+![Band switching Solution](./.images/bank_switch_sol.png)  
+The image below shows the band switch being limited until bank 2 has held the highest amplitude for 50 samples. If during the time bank 2 is acculumating these 50 samples, a different bank holds the highest amplitude, then bank 2 must restart its counting.  
+![Band switching Solution](./.images/bank_switch.png)  
 

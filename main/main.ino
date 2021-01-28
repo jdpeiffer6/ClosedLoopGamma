@@ -18,11 +18,16 @@ double amplitudes[4] = {0.0, 0.0, 0.0, 0.0};  //keeps track of what amplitude ea
 #define SAMPLING_RATE 500   //for 2kHz or 0.0005 s
 #define thresh 100 //Remember, the max is 514 here!
 
+unsigned current_bank = 0;
+unsigned alt_bank_counter = 0;
+#define alt_bank_thresh 50        //how many samples the other must be bigger for
+
 //===========
 // Prototypes
 //===========
+
 void readADC(void);
-int getMaxAmplitude(double* amplitudes);
+int getMaxAmplitude(double* amplitudes, unsigned* current, unsigned* counter);
 
 //===========
 // Buffers
@@ -74,7 +79,7 @@ void loop() {
     interrupts();
 
     //ADD TRIGGERING
-    currentbest = getMaxAmplitude(amplitudes);
+    currentbest = getMaxAmplitude(amplitudes, &current_bank, &alt_bank_counter);
   }
 }
 
@@ -83,7 +88,7 @@ void loop() {
 //=========
 
 //decides which bank has the highest amplitude
-int getMaxAmplitude(double* amplitudes) {
+int getMaxAmplitude(double* amplitudes, unsigned* current, unsigned* counter) {
   double maxx = 0.0;
   int maxind = 0;
   for (int i = 0; i < 4; i++) {
@@ -92,6 +97,20 @@ int getMaxAmplitude(double* amplitudes) {
       maxind = i;
     }
   }
+
+  //back switching things
+  if (maxind == *current) {
+    *counter = 0;
+  } else {
+    if (*counter < alt_bank_thresh) {
+      (*counter)++;
+      maxind = *current;
+    } else {
+      counter = 0;
+      *current = maxind;
+    }
+  }
+
   return maxind;
 }
 
