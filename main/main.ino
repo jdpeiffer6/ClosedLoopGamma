@@ -218,6 +218,5 @@ void user_interface() {
   band_40_70.restart((double)global_thresh);
   band_60_90.restart((double)global_thresh);
   band_80_110.restart((double)global_thresh);
-
   Serial.println("Entering main code. Goodbye");
 }

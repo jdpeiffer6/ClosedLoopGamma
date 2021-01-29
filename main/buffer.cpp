@@ -183,9 +183,9 @@ double buffer::insert(double in)
   return peakAmplitude;
 }
 
-void buffer::restart(double new_threshold){
-  thresh=new_threshold;
-  
+void buffer::restart(double new_threshold) {
+  thresh = new_threshold;
+
   this->peakAmplitude = 0.0;
   for (size_t i = 0; i < PhSize; i++)
   {
@@ -201,5 +201,15 @@ void buffer::restart(double new_threshold){
   previous_detect = 0;
 }
 
+void buffer::disp(void) {
+  Serial.println("Phase:");
+  for (int i = 0; i < PhSize; i++) {
+    Serial.println(xPh[i]);
+  }
+  Serial.println("Amplitude:");
+  for (int i = 0; i < AmpSize; i++) {
+    Serial.println(xAmp[i]);
+  }
+}
 
 }; // end namespace jd

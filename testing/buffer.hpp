@@ -54,6 +54,7 @@ class buffer
     void plt(double Yadd);
     double insert(double);
     void restart(double new_threshold);
+    void disp(void);
 
 };
 
