@@ -32,7 +32,8 @@ unsigned alt_bank_counter = 0;
 
 //triggering
 bool triggered = false;
-unsigned duration_limit=10;      //how many samples the trigger occurs for
+unsigned duration_limit = 10;    //how many samples the trigger occurs for
+unsigned trigger_counter = 0;
 //===========
 // Prototypes
 //===========
@@ -113,15 +114,12 @@ void loop() {
           trigger_counter++;
         }
       } else {
-        if (amplitudes[currentbest] == triggering_faze) {
+        if (phaseDetect[currentbest] == triggering_faze) {
           //trigger
           digitalWrite(TRIGGERING_PIN, HIGH);
           triggered = true;
         }
       }
-
-
-
     }
   }
 }
@@ -192,7 +190,12 @@ void user_interface() {
         if (Serial.available()) {
           String new_val = Serial.readStringUntil('\n');
           triggering_faze = new_val.toInt();
-          break;
+          if (triggering_faze > 3 || triggering_faze < 0) {
+            Serial.println();
+            Serial.println("Try a number 0-3: ");
+          } else {
+            break;
+          }
         }
       }
       Serial.println();
@@ -208,8 +211,6 @@ void user_interface() {
           String new_val = Serial.readStringUntil('\n');
           global_thresh = new_val.toInt();
           break;
-
-          //NOTE: NEED TO ACTUALLY CHANGE THE THRESHOLD HERE
         }
       }
       Serial.println();
@@ -241,5 +242,7 @@ void user_interface() {
   band_40_70.restart((double)global_thresh);
   band_60_90.restart((double)global_thresh);
   band_80_110.restart((double)global_thresh);
+  Serial.println();
+  Serial.println();
   Serial.println("Entering main code. Goodbye");
 }

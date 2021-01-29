@@ -35,6 +35,11 @@ double amplitudes12[4] = {0.0, 0.0, 0.0, 0.0};
 int phaseDetect16[4] = {0, 0, 0, 0};
 double amplitudes16[4] = {0.0, 0.0, 0.0, 0.0};
 
+//triggering
+bool triggered = false;
+unsigned trigger_counter = 0;
+unsigned duration_limit = 10;
+int triggering_faze = 2;
 //===========
 // Prototypes
 //===========
@@ -105,6 +110,23 @@ void loop() {
     band4_60_90.plt(0);
     band4_80_110.plt(0);
     currentbest = getMaxAmplitude(amplitudes4, &current_bank, &alt_bank_counter);
+    if (triggered == true) {
+      if (trigger_counter > duration_limit) {
+        //digitalWrite(TRIGGERING_PIN, LOW);
+        trigger_counter = 0;
+        triggered = false;
+      } else {
+        trigger_counter++;
+      }
+    } else {
+      if (phaseDetect4[currentbest] == triggering_faze) {
+        //trigger
+        //digitalWrite(TRIGGERING_PIN, HIGH);
+        triggered = true;
+      }
+    }
+
+    
     Serial.print(currentbest);
     Serial.print(',');
     Serial.print(phaseDetect4[currentbest]);
@@ -119,7 +141,13 @@ void loop() {
     Serial.print(',');
     Serial.print(SNR);
     Serial.print(',');
-    Serial.println(jd2);
+    Serial.print(jd2);
+    Serial.print(',');
+    if (triggered==true) {
+      Serial.println(1);
+    } else {
+      Serial.println(0);
+    }
     delay(1);
   }
 
@@ -134,13 +162,13 @@ void loop() {
   band4_80_110.restart(thresh);
 
 
-  
+
   SNR = 8;
   x = test_SNR8;
   currentbest = 0;
 
   //added
-  amplitudes4[0]=0;amplitudes4[1]=0;amplitudes4[2]=0;amplitudes4[3]=0;
+  amplitudes4[0] = 0; amplitudes4[1] = 0; amplitudes4[2] = 0; amplitudes4[3] = 0;
   for (int jd2 = 0; jd2 < LEN; jd2++) {
     //adds new read to each band and updates the amplitude readings
     amplitudes4[0] = band4_20_50.insert((double)x[jd2]);
@@ -156,6 +184,25 @@ void loop() {
     band4_60_90.plt(0);
     band4_80_110.plt(0);
     currentbest = getMaxAmplitude(amplitudes4, &current_bank, &alt_bank_counter);
+
+    //triggering
+    if (triggered == true) {
+      if (trigger_counter > duration_limit) {
+        //digitalWrite(TRIGGERING_PIN, LOW);
+        trigger_counter = 0;
+        triggered = false;
+      } else {
+        trigger_counter++;
+      }
+    } else {
+      if (phaseDetect4[currentbest] == triggering_faze) {
+        //trigger
+        //digitalWrite(TRIGGERING_PIN, HIGH);
+        triggered = true;
+      }
+    }
+
+
     Serial.print(currentbest);
     Serial.print(',');
     Serial.print(phaseDetect4[currentbest]);
@@ -170,11 +217,17 @@ void loop() {
     Serial.print(',');
     Serial.print(SNR);
     Serial.print(',');
-    Serial.println(jd2);
+    Serial.print(jd2);
+    Serial.print(',');
+    if (triggered==true) {
+      Serial.println(1);
+    } else {
+      Serial.println(0);
+    }
     delay(1);
   }
   /*
-  for (int jd2 = 0; jd2 < LEN; jd2++) {
+    for (int jd2 = 0; jd2 < LEN; jd2++) {
     //adds new read to each band and updates the amplitude readings
     amplitudes8[0] = band8_20_50.insert((double)x[jd2]);
     amplitudes8[1] = band8_40_70.insert((double)x[jd2]);
@@ -205,7 +258,7 @@ void loop() {
     Serial.print(',');
     Serial.println(jd2);
     delay(1);
-  }*/
+    }*/
 
   //======
   //SNR 12
@@ -214,6 +267,9 @@ void loop() {
   SNR = 12;
   x = test_SNR12;
   currentbest = 0;
+  triggered=false;
+  trigger_counter=0;
+  
   for (int jd2 = 0; jd2 < LEN; jd2++) {
     //adds new read to each band and updates the amplitude readings
     amplitudes12[0] = band12_20_50.insert((double)x[jd2]);
@@ -229,6 +285,23 @@ void loop() {
     band12_60_90.plt(0);
     band12_80_110.plt(0);
     currentbest = getMaxAmplitude(amplitudes12, &current_bank, &alt_bank_counter);
+
+    if (triggered == true) {
+      if (trigger_counter > duration_limit) {
+        //digitalWrite(TRIGGERING_PIN, LOW);
+        trigger_counter = 0;
+        triggered = false;
+      } else {
+        trigger_counter++;
+      }
+    } else {
+      if (phaseDetect12[currentbest] == triggering_faze) {
+        //trigger
+        //digitalWrite(TRIGGERING_PIN, HIGH);
+        triggered = true;
+      }
+    }
+    
     Serial.print(currentbest);
     Serial.print(',');
     Serial.print(phaseDetect12[currentbest]);
@@ -243,7 +316,13 @@ void loop() {
     Serial.print(',');
     Serial.print(SNR);
     Serial.print(',');
-    Serial.println(jd2);
+    Serial.print(jd2);
+    Serial.print(',');
+    if (triggered==true) {
+      Serial.println(1);
+    } else {
+      Serial.println(0);
+    }
     delay(1);
   }
 
@@ -254,6 +333,9 @@ void loop() {
   SNR = 16;
   x = test_SNR16;
   currentbest = 0;
+  triggered=false;
+  trigger_counter=0;
+  
   for (int jd2 = 0; jd2 < LEN; jd2++) {
     //adds new read to each band and updates the amplitude readings
     amplitudes16[0] = band16_20_50.insert((double)x[jd2]);
@@ -269,6 +351,23 @@ void loop() {
     band16_60_90.plt(0);
     band16_80_110.plt(0);
     currentbest = getMaxAmplitude(amplitudes16, &current_bank, &alt_bank_counter);
+
+    if (triggered == true) {
+      if (trigger_counter > duration_limit) {
+        //digitalWrite(TRIGGERING_PIN, LOW);
+        trigger_counter = 0;
+        triggered = false;
+      } else {
+        trigger_counter++;
+      }
+    } else {
+      if (phaseDetect16[currentbest] == triggering_faze) {
+        //trigger
+        //digitalWrite(TRIGGERING_PIN, HIGH);
+        triggered = true;
+      }
+    }
+    
     Serial.print(currentbest);
     Serial.print(',');
     Serial.print(phaseDetect16[currentbest]);
@@ -283,7 +382,13 @@ void loop() {
     Serial.print(',');
     Serial.print(SNR);
     Serial.print(',');
-    Serial.println(jd2);
+    Serial.print(jd2);
+    Serial.print(',');
+    if (triggered==true) {
+      Serial.println(1);
+    } else {
+      Serial.println(0);
+    }
     delay(1);
   }
 
