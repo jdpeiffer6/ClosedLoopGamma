@@ -18,6 +18,7 @@ double amplitudes[4] = {0.0, 0.0, 0.0, 0.0};  //keeps track of what amplitude ea
 #define ADC_PIN A7
 #define SAMPLING_RATE 500   //for 2kHz or 0.0005 s
 #define default_thresh 100 //Remember, the max is 514 here!
+#define TRIGGERING_PIN 2
 
 String entry;
 int triggering_faze = 0;
@@ -29,6 +30,9 @@ unsigned current_bank = 0;
 unsigned alt_bank_counter = 0;
 #define alt_bank_thresh 50        //how many samples the other must be bigger for
 
+//triggering
+bool triggered = false;
+unsigned duration_limit=10;      //how many samples the trigger occurs for
 //===========
 // Prototypes
 //===========
@@ -57,6 +61,7 @@ void setup() {
     delay(5000);
     while (!Serial);*/
   pinMode(ADC_PIN, INPUT);
+  pinMode(TRIGGERING_PIN, OUTPUT);
   interruptTimer.begin(readADC, SAMPLING_RATE);
 }
 
@@ -72,7 +77,7 @@ void loop() {
   if (Serial.available() && UI_done_flag == false) {
     user_interface();
   } else {
-   
+
     //====================================================
     // Signal processing. Occurs when no serial plugged in
     //====================================================
@@ -83,7 +88,7 @@ void loop() {
     currentReadCopy = currentRead;
     interrupts();
 
-    //if we read a new value: do stuff. else: dont do stuff
+    //if we read a new value: do stuff. else: dont do stuff. this SHOULD run at 2kHz
     if (computeFlagCopy == 1) {
 
       //adds new read to each band and updates the amplitude readings
@@ -97,8 +102,26 @@ void loop() {
       computeFlag = 0;
       interrupts();
 
-      //ADD TRIGGERING
+      //triggering
       currentbest = getMaxAmplitude(amplitudes, &current_bank, &alt_bank_counter);
+      if (triggered == true) {
+        if (trigger_counter > duration_limit) {
+          digitalWrite(TRIGGERING_PIN, LOW);
+          trigger_counter = 0;
+          triggered = false;
+        } else {
+          trigger_counter++;
+        }
+      } else {
+        if (amplitudes[currentbest] == triggering_faze) {
+          //trigger
+          digitalWrite(TRIGGERING_PIN, HIGH);
+          triggered = true;
+        }
+      }
+
+
+
     }
   }
 }
