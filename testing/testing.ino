@@ -127,9 +127,53 @@ void loop() {
   //SNR 8
   //=====
 
+  //added
+  band4_20_50.restart(thresh);
+  band4_40_70.restart(thresh);
+  band4_60_90.restart(thresh);
+  band4_80_110.restart(thresh);
+
+
+  
   SNR = 8;
   x = test_SNR8;
   currentbest = 0;
+
+  //added
+  amplitudes4[0]=0;amplitudes4[1]=0;amplitudes4[2]=0;amplitudes4[3]=0;
+  for (int jd2 = 0; jd2 < LEN; jd2++) {
+    //adds new read to each band and updates the amplitude readings
+    amplitudes4[0] = band4_20_50.insert((double)x[jd2]);
+    amplitudes4[1] = band4_40_70.insert((double)x[jd2]);
+    amplitudes4[2] = band4_60_90.insert((double)x[jd2]);
+    amplitudes4[3] = band4_80_110.insert((double)x[jd2]);
+
+    //Outputs data, can read this into data file with PuTTy, in real life, this is where we will trigger
+    Serial.print(x[jd2]);
+    Serial.print(',');
+    band4_20_50.plt(0);
+    band4_40_70.plt(0);
+    band4_60_90.plt(0);
+    band4_80_110.plt(0);
+    currentbest = getMaxAmplitude(amplitudes4, &current_bank, &alt_bank_counter);
+    Serial.print(currentbest);
+    Serial.print(',');
+    Serial.print(phaseDetect4[currentbest]);
+    Serial.print(',');
+    Serial.print(amplitudes4[0]);
+    Serial.print(',');
+    Serial.print(amplitudes4[1]);
+    Serial.print(',');
+    Serial.print(amplitudes4[2]);
+    Serial.print(',');
+    Serial.print(amplitudes4[3]);
+    Serial.print(',');
+    Serial.print(SNR);
+    Serial.print(',');
+    Serial.println(jd2);
+    delay(1);
+  }
+  /*
   for (int jd2 = 0; jd2 < LEN; jd2++) {
     //adds new read to each band and updates the amplitude readings
     amplitudes8[0] = band8_20_50.insert((double)x[jd2]);
@@ -161,7 +205,7 @@ void loop() {
     Serial.print(',');
     Serial.println(jd2);
     delay(1);
-  }
+  }*/
 
   //======
   //SNR 12

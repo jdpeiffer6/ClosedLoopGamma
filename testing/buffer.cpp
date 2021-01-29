@@ -180,11 +180,25 @@ double buffer::insert(double in)
     *stat = 0;
   }
 
-
-
-
-
   return peakAmplitude;
+}
+
+void buffer::restart(double new_threshold){
+  thresh=new_threshold;
+  
+  this->peakAmplitude = 0.0;
+  for (size_t i = 0; i < PhSize; i++)
+  {
+    yPh[i] = xPh[i] = 0.00; //pads with 0
+  }
+
+  for (size_t i = 0; i < AmpSize; i++)
+  {
+    yAmp[i] = xAmp[i] = 0.00; //pads with 0
+  }
+
+  //start counter
+  previous_detect = 0;
 }
 
 

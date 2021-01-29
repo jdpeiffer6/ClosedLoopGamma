@@ -5,7 +5,7 @@ class buffer
 {
 
   private:
-    const double thresh;
+    double thresh;
 
     const uint PhSize;
     const uint AmpSize;
@@ -53,6 +53,7 @@ class buffer
     void plt(double Yadd, int End);
     void plt(double Yadd);
     double insert(double);
+    void restart(double new_threshold);
 
 };
 
