@@ -5,6 +5,7 @@
 // Definitions
 //============
 
+//for sampling
 volatile unsigned long currentRead;
 volatile unsigned long computeFlag;
 unsigned long currentReadCopy;
@@ -21,7 +22,7 @@ double amplitudes[4] = {0.0, 0.0, 0.0, 0.0};  //keeps track of what amplitude ea
 #define TRIGGERING_PIN 2
 
 String entry;
-int triggering_faze = 0;
+int triggering_faze = 2;
 int global_thresh = 100;
 int currentbest = 0;
 bool UI_done_flag = false;
@@ -34,6 +35,7 @@ unsigned alt_bank_counter = 0;
 bool triggered = false;
 unsigned duration_limit = 10;    //how many samples the trigger occurs for
 unsigned trigger_counter = 0;
+
 //===========
 // Prototypes
 //===========
@@ -58,9 +60,7 @@ jd::buffer band_80_110(a_80_110_2, b_80_110_2, 2, a_80_110_4, b_80_110_4, 4, def
 //===========
 
 void setup() {
-  /*Serial.begin(9600);
-    delay(5000);
-    while (!Serial);*/
+  Serial.begin(9600);
   pinMode(ADC_PIN, INPUT);
   pinMode(TRIGGERING_PIN, OUTPUT);
   interruptTimer.begin(readADC, SAMPLING_RATE);
@@ -164,12 +164,14 @@ void welcome() {
   Serial.println("===============");
   Serial.println("Welcome to teensy interface for closed loop gamma modulation");
   Serial.println();
+  Serial.println("J Peiffer, Z Chen, S Nair, D Headley 1/31/21");
+  Serial.println();
   Serial.println("Possible options:");
   Serial.println("\tphase: adjust which phase you desire for triggering");
-  Serial.println("\t\t0 -> -/+ 0 cross");
-  Serial.println("\t\t1 -> peak,");
-  Serial.println("\t\t2 -> +/- 0 cross");
-  Serial.println("\t\t3 -> trough");
+  Serial.println("\t\t1 -> -/+ 0 cross");
+  Serial.println("\t\t2 -> peak,");
+  Serial.println("\t\t-1 -> +/- 0 cross");
+  Serial.println("\t\t-2 -> trough");
   Serial.println("\tthreshold: determines the amplitude threshold required for triggering");
   Serial.println("\t\t0-514 with 514 being +/- 3.3 V");
   Serial.println("\tquit: exit this menu");
@@ -190,9 +192,9 @@ void user_interface() {
         if (Serial.available()) {
           String new_val = Serial.readStringUntil('\n');
           triggering_faze = new_val.toInt();
-          if (triggering_faze > 3 || triggering_faze < 0) {
-            Serial.println();
-            Serial.println("Try a number 0-3: ");
+          if (!(triggering_faze == 1 || triggering_faze == 2 || triggering_faze == -2 || triggering_faze == -1 )) {
+            Serial.println(triggering_faze);
+            Serial.println("Try a number 1,2,-1,-2: ");
           } else {
             break;
           }
@@ -210,7 +212,12 @@ void user_interface() {
         if (Serial.available()) {
           String new_val = Serial.readStringUntil('\n');
           global_thresh = new_val.toInt();
-          break;
+          if (global_thresh < 0 || global_thresh > 515) {
+            Serial.println(global_thresh);
+            Serial.println("Try a number 1-514: ");
+          } else {
+            break;
+          }
         }
       }
       Serial.println();
