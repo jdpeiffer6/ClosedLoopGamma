@@ -1,6 +1,5 @@
 # Gamma Detection Using Teensy 4.0/4.1
-### J.D. Peiffer, Ziao Chen, Satish Nair, Drew Headley
-#### jdp6n8@mail.missouri.edu
+### [J.D. Peiffer](mailto:jdp6n8@mail.missouri.edu), Ziao Chen, Satish Nair, Drew Headley
 
 ## Folder information
 * __testing__: contains predefined input vectors (20-110 Hz chirp) for observation and testing.
