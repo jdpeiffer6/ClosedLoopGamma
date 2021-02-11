@@ -1,0 +1,12 @@
+
+% Using a 1uF cap
+w=20:110;
+r_with_1uf=[5.230112892048442e+03,1.539400900018630e+04,7.930247060701302e+03];
+out1=calc_with_w(r_with_1uf,w);
+subplot(2,1,1);
+plot(w,out1{1},'LineWidth',1);
+
+subplot(2,1,2);
+plot(w,out1{2},'LineWidth',1);
+xlabel('Frequency (Hz)');
+ylabel('Voltage at trough
