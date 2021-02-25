@@ -1,0 +1,244 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>deleteme</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-02-11"><meta name="DC.source" content="deleteme.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">Housekeeping</a></li><li><a href="#2">Notes</a></li><li><a href="#3">symbols</a></li><li><a href="#4">assumptions</a></li><li><a href="#5">equations</a></li><li><a href="#6">substitutions</a></li><li><a href="#7">solutions</a></li></ul></div><h2 id="1">Housekeeping</h2><pre class="codeinput">clc
+clear
+</pre><h2 id="2">Notes</h2><p>none</p><h2 id="3">symbols</h2><pre class="codeinput">syms <span class="string">c1</span> <span class="string">f</span> <span class="string">r1</span> <span class="string">r2</span> <span class="string">r3</span> <span class="string">vcc</span> <span class="string">vin</span> <span class="string">vin_dc</span> <span class="string">vin_ac</span> <span class="string">vout</span> <span class="string">vout_ac</span> <span class="string">vout_dc</span> ;
+</pre><h2 id="4">assumptions</h2><p>none</p><h2 id="5">equations</h2><pre class="codeinput"><span class="comment">% Equivalent resistance when resistors R1 and R2 are connected in parallel</span>
+rp_r2r3 = 1/(1/r2 + 1/r3);
+
+<span class="comment">% C1's steady-state capacitive reactance for a sinewave signal having</span>
+<span class="comment">% frequency 'f'. (NB: xc1 is a complex value.)</span>
+xc1 = 1 ./ (1i .* 2 .* pi .* f .* c1);
+
+<span class="comment">% Use the voltage divider equation to determine the DC component of the</span>
+<span class="comment">% output signal, vout_dc</span>
+<span class="comment">% NB: vin_dc is blocked by capacitor C1; therefore, vout_dc's value does</span>
+<span class="comment">% not depend on vin_dc's value.</span>
+vout_dc = vcc * r3 / ( r2 + r3 );
+
+<span class="comment">% Use the voltage divider equation to determine the AC component of the</span>
+<span class="comment">% output signal, vout_ac</span>
+<span class="comment">% NB: vout_ac is a complex value.</span>
+vout_ac = vin_ac .* rp_r2r3 ./ (r1 + xc1 + rp_r2r3);
+</pre><h2 id="6">substitutions</h2><pre class="codeinput"><span class="comment">% Design values</span>
+c1_ = 1e-6 ;    <span class="comment">% farads</span>
+r1_ = 5230 ;    <span class="comment">% ohms</span>
+r2_ = 15390 ;   <span class="comment">% ohms</span>
+r3_ = 7930 ;    <span class="comment">% ohms</span>
+vcc_ = 5 ;      <span class="comment">% volts</span>
+vin_dc_ = 0 ;   <span class="comment">% volts dc</span>
+vin_ac_ = 3 ;   <span class="comment">% volts ac, peak amplitude</span>
+
+<span class="comment">% Test frequencies, Hz</span>
+f_ = linspace(1,1000);  <span class="comment">% (&lt;- generates 100 evenly-spaced frequencies)</span>
+
+<span class="comment">% vout's DC value as a function of r2, r3, and vcc</span>
+f_vout_dc = matlabFunction( vout_dc ); <span class="comment">% @(r2,r3,vcc)</span>
+
+<span class="comment">% vout's AC value as a function of c1, f, r1, r2, r3, and vin_ac</span>
+f_vout_ac = matlabFunction(vout_ac); <span class="comment">% @(c1,f,r1,r2,r3,vin_ac)</span>
+</pre><h2 id="7">solutions</h2><pre class="codeinput"><span class="comment">% NB: vout = vout_ac + vout_dc</span>
+
+<span class="comment">% Calculate vout's DC component</span>
+vout_dc_ = f_vout_dc( r1_, r2_, vcc_ )
+
+<span class="comment">% Calculate the magnitude of vout's AC component at each test frequency</span>
+<span class="comment">% NB: abs_vout_ac does not include the output signal's DC component.</span>
+abs_vout_ac_ = abs( f_vout_ac(c1_, f_, r1_, r2_, r3_, vin_ac_) );
+
+<span class="comment">% Plot vout_ac's frequency response</span>
+subplot(2,1,1)
+plot(f_, abs_vout_ac_)
+grid <span class="string">on</span>
+title(<span class="string">'Frequency Reponse of v_{out}'</span>)
+xlabel(<span class="string">'Frequency (Hz)'</span>)
+ylabel(<span class="string">'v_{out} (V_{pk})'</span>)
+
+<span class="comment">% Plot vout for a specific test frequency, f_test</span>
+<span class="comment">% NB: Try setting f_test to different values, e.g., 1 Hz, 10 Hz, 100 Hz</span>
+f_test = 100;   <span class="comment">% Hz</span>
+cycles = 3;
+abs_vout_ac_ = abs( f_vout_ac(c1_, f_test, r1_, r2_, r3_, vin_ac_) );
+t = linspace(0,cycles/f_test);  <span class="comment">% seconds</span>
+v_out = abs_vout_ac_ * sin(2*pi*f_test*t) + vout_dc_ ;  <span class="comment">% volts</span>
+subplot(2,1,2)
+plot(t, v_out)  <span class="comment">% vout</span>
+yticks(0:1:6)
+grid <span class="string">on</span>
+hold <span class="string">on</span>
+plot(t, ones(size(t))*vout_dc_) <span class="comment">% vout_dc</span>
+hold <span class="string">off</span>
+title_text = <span class="string">"Test frequency = "</span> + f_test + <span class="string">" Hz"</span> ;
+title( title_text )
+ylim([0 6])
+xlabel(<span class="string">'Time (s)'</span>)
+ylabel(<span class="string">'v_{out} (Volts)'</span>)
+</pre><pre class="codeoutput">
+vout_dc_ =
+
+    3.7318
+
+</pre><img vspace="5" hspace="5" src="deleteme_01.png" alt=""> <p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Housekeeping
+clc
+clear
+
+%% Notes
+% none
+
+%% symbols
+syms c1 f r1 r2 r3 vcc vin vin_dc vin_ac vout vout_ac vout_dc ;
+
+%% assumptions
+% none
+
+%% equations
+
+% Equivalent resistance when resistors R1 and R2 are connected in parallel
+rp_r2r3 = 1/(1/r2 + 1/r3);
+
+% C1's steady-state capacitive reactance for a sinewave signal having 
+% frequency 'f'. (NB: xc1 is a complex value.)
+xc1 = 1 ./ (1i .* 2 .* pi .* f .* c1);
+
+% Use the voltage divider equation to determine the DC component of the 
+% output signal, vout_dc
+% NB: vin_dc is blocked by capacitor C1; therefore, vout_dc's value does
+% not depend on vin_dc's value.
+vout_dc = vcc * r3 / ( r2 + r3 );
+
+% Use the voltage divider equation to determine the AC component of the
+% output signal, vout_ac
+% NB: vout_ac is a complex value.
+vout_ac = vin_ac .* rp_r2r3 ./ (r1 + xc1 + rp_r2r3);
+
+
+%% substitutions
+
+% Design values
+c1_ = 1e-6 ;    % farads
+r1_ = 5230 ;    % ohms
+r2_ = 15390 ;   % ohms
+r3_ = 7930 ;    % ohms
+vcc_ = 5 ;      % volts
+vin_dc_ = 0 ;   % volts dc
+vin_ac_ = 3 ;   % volts ac, peak amplitude
+
+% Test frequencies, Hz
+f_ = linspace(1,1000);  % (<- generates 100 evenly-spaced frequencies)
+
+% vout's DC value as a function of r2, r3, and vcc
+f_vout_dc = matlabFunction( vout_dc ); % @(r2,r3,vcc)
+
+% vout's AC value as a function of c1, f, r1, r2, r3, and vin_ac
+f_vout_ac = matlabFunction(vout_ac); % @(c1,f,r1,r2,r3,vin_ac)
+
+
+%% solutions
+
+% NB: vout = vout_ac + vout_dc
+
+% Calculate vout's DC component
+vout_dc_ = f_vout_dc( r1_, r2_, vcc_ )
+
+% Calculate the magnitude of vout's AC component at each test frequency
+% NB: abs_vout_ac does not include the output signal's DC component.
+abs_vout_ac_ = abs( f_vout_ac(c1_, f_, r1_, r2_, r3_, vin_ac_) );
+
+% Plot vout_ac's frequency response
+subplot(2,1,1)
+plot(f_, abs_vout_ac_)
+grid on
+title('Frequency Reponse of v_{out}')
+xlabel('Frequency (Hz)')
+ylabel('v_{out} (V_{pk})')
+
+% Plot vout for a specific test frequency, f_test
+% NB: Try setting f_test to different values, e.g., 1 Hz, 10 Hz, 100 Hz
+f_test = 100;   % Hz
+cycles = 3;
+abs_vout_ac_ = abs( f_vout_ac(c1_, f_test, r1_, r2_, r3_, vin_ac_) );
+t = linspace(0,cycles/f_test);  % seconds
+v_out = abs_vout_ac_ * sin(2*pi*f_test*t) + vout_dc_ ;  % volts
+subplot(2,1,2)
+plot(t, v_out)  % vout
+yticks(0:1:6)
+grid on
+hold on
+plot(t, ones(size(t))*vout_dc_) % vout_dc
+hold off
+title_text = "Test frequency = " + f_test + " Hz" ;
+title( title_text )
+ylim([0 6])
+xlabel('Time (s)')
+ylabel('v_{out} (Volts)')
+
+##### SOURCE END #####
+--></body></html>
