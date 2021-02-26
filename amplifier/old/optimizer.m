@@ -1,0 +1,1 @@
+fsolve(@non_invert_summing,[11.7e3 8.1e3])
