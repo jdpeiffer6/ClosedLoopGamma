@@ -22,7 +22,10 @@ unsigned alt_bank_counter = 0;
 
 #define thresh 100 //TRIGGERING THRESHOLD! Range of 0-512
 
+#define INPUT_GATE_PIN 3
+
 //Data locations that filters will continously update
+unsigned activeBanks[4]={1,1,1,1};
 int phaseDetect4[4] = {0, 0, 0, 0};            //keeps track of what phase each filter is at
 double amplitudes4[4] = {0.0, 0.0, 0.0, 0.0};  //keeps track of what amplitude each filter is at
 
@@ -38,7 +41,7 @@ double amplitudes16[4] = {0.0, 0.0, 0.0, 0.0};
 //triggering
 bool triggered = false;
 unsigned trigger_counter = 0;
-unsigned duration_limit = 10;
+unsigned duration_limit = 2;
 int triggering_faze = 2;
 //===========
 // Prototypes
@@ -75,10 +78,11 @@ jd::buffer band16_80_110(a_80_110_2, b_80_110_2, 2, a_80_110_4, b_80_110_4, 4, t
 //===========
 
 void setup() {
+  pinMode(INPUT_GATE_PIN,INPUT);
   Serial.begin(9600);
   delay(5000);
   while (!Serial);
-
+  
   //Each line of the serial output will read: [X (input vector), 35 Hz centered phase filter, 35 Hz centered amplitude filter, ...and so on for 55, 75, 95, Filter bank with strongest signal, Detected phase]
   Serial.println("X,35Phase,35Amplitude,55Phase,55Amplitude,75Phase,75Amplitude,95Phase,95Amplitude,CurrentBest,PhaseDetect");
 
@@ -119,7 +123,7 @@ void loop() {
         trigger_counter++;
       }
     } else {
-      if (phaseDetect4[currentbest] == triggering_faze) {
+      if (phaseDetect4[currentbest] == triggering_faze && activeBanks[currentbest]==1) {
         //trigger
         //digitalWrite(TRIGGERING_PIN, HIGH);
         triggered = true;
@@ -197,8 +201,10 @@ void loop() {
     } else {
       if (phaseDetect4[currentbest] == triggering_faze) {
         //trigger
-        //digitalWrite(TRIGGERING_PIN, HIGH);
-        triggered = true;
+        if(digitalRead(INPUT_GATE_PIN)==HIGH){
+            //digitalWrite(TRIGGERING_PIN, HIGH);
+            triggered = true;
+          }        
       }
     }
 
@@ -295,7 +301,7 @@ void loop() {
         trigger_counter++;
       }
     } else {
-      if (phaseDetect12[currentbest] == triggering_faze) {
+      if (phaseDetect12[currentbest] == triggering_faze && activeBanks[currentbest]==1) {
         //trigger
         //digitalWrite(TRIGGERING_PIN, HIGH);
         triggered = true;
@@ -361,7 +367,7 @@ void loop() {
         trigger_counter++;
       }
     } else {
-      if (phaseDetect16[currentbest] == triggering_faze) {
+      if (phaseDetect16[currentbest] == triggering_faze && activeBanks[currentbest]==1) {
         //trigger
         //digitalWrite(TRIGGERING_PIN, HIGH);
         triggered = true;

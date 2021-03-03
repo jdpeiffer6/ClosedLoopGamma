@@ -32,10 +32,11 @@ bool UI_done_flag = false;
 unsigned current_bank = 0;
 unsigned alt_bank_counter = 0;
 #define alt_bank_thresh 50        //how many samples the other must be bigger for
+int toggle_bank;
 
 //triggering
 bool triggered = false;
-unsigned duration_limit = 1;    //how many samples the trigger occurs for
+unsigned duration_limit = 2;    //how many samples the trigger occurs for
 unsigned trigger_counter = 0;
 
 //===========
@@ -43,7 +44,7 @@ unsigned trigger_counter = 0;
 //===========
 
 void readADC(void);
-int getMaxAmplitude(double* amplitudes, unsigned* current, unsigned* counter, unsigned* active_banks);
+int getMaxAmplitude(double* amplitudes, unsigned* current, unsigned* counter);
 void welcome();
 void user_interface();
 
@@ -65,6 +66,7 @@ void setup() {
   Serial.begin(9600);
   pinMode(ADC_PIN, INPUT);
   pinMode(TRIGGERING_PIN, OUTPUT);
+  pinMode(INPUT_GATE_PIN,INPUT);
   interruptTimer.begin(readADC, SAMPLING_RATE);
 }
 
@@ -108,7 +110,7 @@ void loop() {
       //==========
       //Triggering
       //==========
-      currentbest = getMaxAmplitude(amplitudes, &current_bank, &alt_bank_counter, activeBanks);
+      currentbest = getMaxAmplitude(amplitudes, &current_bank, &alt_bank_counter);
       if (triggered == true) {
         if (trigger_counter > duration_limit) {
           digitalWrite(TRIGGERING_PIN, LOW);
@@ -118,7 +120,7 @@ void loop() {
           trigger_counter++;
         }
       } else {
-        if (phaseDetect[currentbest] == triggering_faze) {
+        if (phaseDetect[currentbest] == triggering_faze && activeBanks[currentbest]==1) {
           //trigger
           if(digitalRead(INPUT_GATE_PIN)==LOW){
             digitalWrite(TRIGGERING_PIN, HIGH);
@@ -135,11 +137,11 @@ void loop() {
 //=========
 
 //decides which bank has the highest amplitude
-int getMaxAmplitude(double* amplitudes, unsigned* current, unsigned* counter,unsigned* active_banks) {
+int getMaxAmplitude(double* amplitudes, unsigned* current, unsigned* counter) {
   double maxx = 0.0;
   int maxind = 0;
   for (int i = 0; i < 4; i++) {
-    if (amplitudes[i] > maxx && active_banks[i] == 0) {
+    if (amplitudes[i] > maxx) {
       maxx = amplitudes[i];
       maxind = i;
     }
@@ -182,6 +184,7 @@ void welcome() {
   Serial.println("\t\t0-514 with 514 being +/- 3.3 V");
   Serial.println("\ttrig: specifies the length of the trigger output in samples");
   Serial.println("\t\t1 = 0.5 ms");
+  Serial.println("\tbanks: toggle bank detection");
   Serial.println("\tquit: exit this menu");
   Serial.println("===============");
 }
@@ -232,14 +235,6 @@ void user_interface() {
       Serial.print("Threshold set to ");
       Serial.println(global_thresh);
       entry = String("job_complete");
-    } else if (entry.equals("job_complete")) {
-      Serial.print("Enter a new option: ");
-      while (1) {
-        if (Serial.available()) {
-          entry = Serial.readStringUntil('\n');
-          break;
-        }
-      }
     } else if (entry.equals("trig")) {
       Serial.print("Trigger length is currently set at ");
       Serial.println(duration_limit);
@@ -248,7 +243,7 @@ void user_interface() {
         if (Serial.available()) {
           String new_val = Serial.readStringUntil('\n');
           duration_limit = new_val.toInt();
-          if (duration_limit < 0 ) {
+          if (duration_limit <= 0 ) {
             Serial.println(duration_limit);
             Serial.println("Try a number greater than 0: ");
           } else {
@@ -260,7 +255,56 @@ void user_interface() {
       Serial.print("Trigger length set to ");
       Serial.println(duration_limit);
       entry = String("job_complete");
-    } else {
+    } 
+    
+    else if (entry.equals("banks")) {
+      Serial.println("Banks currently set to: ");
+      Serial.print("\t\t0, 20 - 50 Hz: ");
+      Serial.println(activeBanks[0]);
+      Serial.print("\t\t1, 40 - 70 Hz: ");
+      Serial.println(activeBanks[1]);
+      Serial.print("\t\t2, 60 - 90 Hz: ");
+      Serial.println(activeBanks[2]);
+      Serial.print("\t\t3, 80 - 110 Hz: ");
+      Serial.println(activeBanks[3]);
+      Serial.print("Bank to toggle: ");
+      while (1) {
+        if (Serial.available()) {
+          String new_val = Serial.readStringUntil('\n');
+          toggle_bank = new_val.toInt();
+          if (toggle_bank < 0 || toggle_bank > 3) {
+            Serial.println(duration_limit);
+            Serial.println("Try a number 0 - 3: ");
+          } else {
+            break;
+          }
+        }
+      }
+      if(activeBanks[toggle_bank]==1){
+        activeBanks[toggle_bank]=0;
+      }else{
+        activeBanks[toggle_bank]=1;
+      }
+      Serial.println("Banks currently set to: ");
+      Serial.print("\t\t0, 20 - 50 Hz: ");
+      Serial.println(activeBanks[0]);
+      Serial.print("\t\t1, 40 - 70 Hz: ");
+      Serial.println(activeBanks[1]);
+      Serial.print("\t\t2, 60 - 90 Hz: ");
+      Serial.println(activeBanks[2]);
+      Serial.print("\t\t3, 80 - 110 Hz: ");
+      Serial.println(activeBanks[3]);
+      entry = String("job_complete");
+    }
+    else if (entry.equals("job_complete")) {
+      Serial.print("Enter a new option: ");
+      while (1) {
+        if (Serial.available()) {
+          entry = Serial.readStringUntil('\n');
+          break;
+        }
+      }
+    }  else {
       Serial.println("Incorrect entry. Try again");
       Serial.println();
       //while (!entry.equals("quit") || !entry.equals("phase") || entry.equals("threshold")) {
