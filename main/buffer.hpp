@@ -5,7 +5,6 @@ class buffer
 {
 
   private:
-    double thresh;
 
     const uint PhSize;
     const uint AmpSize;
@@ -49,11 +48,11 @@ class buffer
     int* stat;
 
   public:
-    buffer(double* APh, double* BPh, uint PHORDER, double* AAmp, double* BAmp, uint AMPORDER, double threshol, int *STAT);
+    buffer(double* APh, double* BPh, uint PHORDER, double* AAmp, double* BAmp, uint AMPORDER, int *STAT);
     void plt(double Yadd, int End);
     void plt(double Yadd);
     double insert(double);
-    void restart(double new_threshold);
+    void restart(void);
     void disp(void);
 
 };

@@ -1,7 +1,7 @@
 #include "buffer.hpp"
 namespace jd
 {
-buffer::buffer(double *APh, double *BPh, uint PHORDER, double *AAmp, double *BAmp, uint AMPORDER, double threshol, int *STAT) : aPh(APh), bPh(BPh), aAmp(AAmp), bAmp(BAmp), PhSize(PHORDER + 1), AmpSize(AMPORDER + 1), thresh(threshol), stat(STAT)
+buffer::buffer(double *APh, double *BPh, uint PHORDER, double *AAmp, double *BAmp, uint AMPORDER, int *STAT) : aPh(APh), bPh(BPh), aAmp(AAmp), bAmp(BAmp), PhSize(PHORDER + 1), AmpSize(AMPORDER + 1), stat(STAT)
 {
   this->peakAmplitude = 0.0;
   //Initializes buffer start and ends
@@ -145,11 +145,11 @@ double buffer::insert(double in)
   // Amplitude Detection
   //====================
   //peak
-  if (*yAmp_L1 > *yAmp_L2 && *yAmp_L1 > *yAmpCurrent && *yAmp_L1 > thresh) {
+  if (*yAmp_L1 > *yAmp_L2 && *yAmp_L1 > *yAmpCurrent ) {
     peakAmplitude = *yAmp_L1;
   }
   //trough (1 sample delay)
-  else if (*yAmp_L1 < *yAmp_L2 && *yAmp_L1 < *yAmpCurrent && *yAmp_L1 < (-1.0) * thresh) {
+  else if (*yAmp_L1 < *yAmp_L2 && *yAmp_L1 < *yAmpCurrent ) {
     peakAmplitude = *yAmp_L1 * (-1.0);
 
   }
@@ -158,13 +158,12 @@ double buffer::insert(double in)
   //================
 
   //peak (1 sample delay)
-  if (*yPh_L1 > *yPh_L2 && *yPh_L1 > *yPhCurrent && peakAmplitude > thresh && previous_detect == 0) {
+  if (*yPh_L1 > *yPh_L2 && *yPh_L1 > *yPhCurrent && previous_detect == 0) {
     *stat = 2;
     previous_detect = 1;
   }
   //trough (1 sample delay)
-  //else if (*yPh_L1 < *yPh_L2 && *yPh_L1 < *yPhCurrent && peakAmplitude > (-1.0) * thresh && previous_detect == 2) {
-  else if (*yPh_L1 < *yPh_L2 && *yPh_L1 < *yPhCurrent && peakAmplitude >  thresh && previous_detect == 2) {
+  else if (*yPh_L1 < *yPh_L2 && *yPh_L1 < *yPhCurrent && previous_detect == 2) {
     *stat = -2;
     previous_detect = 3;
   }
@@ -184,12 +183,7 @@ double buffer::insert(double in)
   return peakAmplitude;
 }
 
-void buffer::restart(double new_threshold) {
-  this->thresh = new_threshold;
-  this->thresh = 0;
-  Serial.print("Using ");
-  Serial.print(this->thresh);
-  Serial.println("as threshold");
+void buffer::restart(void) {
   this->peakAmplitude = 0.0;
   for (size_t i = 0; i < PhSize; i++)
   {

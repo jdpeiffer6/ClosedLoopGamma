@@ -21,7 +21,7 @@ unsigned activeBanks[4]={1,1,1,1};
 #define SAMPLING_RATE 500   //for 2kHz or 0.0005 s
 #define default_thresh 300 //Remember, the max is 514 here!
 #define TRIGGERING_PIN 2
-#define INPUT_GATE_PIN 3
+#define INPUT_GATE_PIN 1
 
 String entry;
 int triggering_faze = 2;
@@ -53,10 +53,10 @@ void user_interface();
 //===========
 
 //initializes filters
-jd::buffer band_20_50(a_20_50_2, b_20_50_2, 2, a_20_50_4, b_20_50_4, 4, default_thresh, &phaseDetect[0]);
-jd::buffer band_40_70(a_40_70_2, b_40_70_2, 2, a_40_70_4, b_40_70_4, 4, default_thresh, &phaseDetect[1]);
-jd::buffer band_60_90(a_60_90_2, b_60_90_2, 2, a_60_90_4, b_60_90_4, 4, default_thresh, &phaseDetect[2]);
-jd::buffer band_80_110(a_80_110_2, b_80_110_2, 2, a_80_110_4, b_80_110_4, 4, default_thresh, &phaseDetect[3]);
+jd::buffer band_20_50(a_20_50_2, b_20_50_2, 2, a_20_50_4, b_20_50_4, 4, &phaseDetect[0]);
+jd::buffer band_40_70(a_40_70_2, b_40_70_2, 2, a_40_70_4, b_40_70_4, 4, &phaseDetect[1]);
+jd::buffer band_60_90(a_60_90_2, b_60_90_2, 2, a_60_90_4, b_60_90_4, 4, &phaseDetect[2]);
+jd::buffer band_80_110(a_80_110_2, b_80_110_2, 2, a_80_110_4, b_80_110_4, 4, &phaseDetect[3]);
 
 //===========
 // Setup
@@ -79,8 +79,8 @@ void loop() {
   //===============
   // User Interface
   //===============
-  //if (Serial.available() && UI_done_flag == false) {  // this makes it so you can only send once
-  if (Serial.available() ) {      //this will open whenever you send something in arduino serial
+  //if (Serial.available() && UI_done_flag == false) {  // this makes it so you can only configure once when code first starts
+  if (Serial.available() ) {      //this will open whenever you send something in arduino serial (not tested with TX/RX)
     user_interface();
   } else {
 
@@ -123,7 +123,7 @@ void loop() {
       } else {
         if (phaseDetect[currentbest] == triggering_faze && activeBanks[currentbest]==1) {
           //trigger
-          if(digitalRead(INPUT_GATE_PIN)==LOW){
+          if(digitalRead(INPUT_GATE_PIN)==LOW && amplitudes[currentbest]>global_thresh){
             digitalWrite(TRIGGERING_PIN, HIGH);
           }
           triggered = true;
@@ -142,7 +142,8 @@ int getMaxAmplitude(double* amplitudes, unsigned* current, unsigned* counter) {
   double maxx = 0.0;
   int maxind = 0;
   for (int i = 0; i < 4; i++) {
-    if (amplitudes[i] > maxx && amplitudes[i] > global_thresh) {
+    //if (amplitudes[i] > maxx && amplitudes[i] > global_thresh) {
+    if (amplitudes[i] > maxx ) {
       maxx = amplitudes[i];
       maxind = i;
     }
@@ -224,7 +225,7 @@ void user_interface() {
         if (Serial.available()) {
           String new_val = Serial.readStringUntil('\n');
           global_thresh = new_val.toInt();
-          if (global_thresh < 0 || global_thresh > 1000) {  //changed
+          if (global_thresh < 0 || global_thresh > 514) {
             Serial.println(global_thresh);
             Serial.println("Try a number 1-514: ");
           } else {
@@ -318,10 +319,10 @@ void user_interface() {
     }
   }
   UI_done_flag = true;
-  band_20_50.restart((double)global_thresh);
-  band_40_70.restart((double)global_thresh);
-  band_60_90.restart((double)global_thresh);
-  band_80_110.restart((double)global_thresh);
+  band_20_50.restart();
+  band_40_70.restart();
+  band_60_90.restart();
+  band_80_110.restart();
   Serial.println();
   Serial.println();
   Serial.println("Entering main code. Goodbye");

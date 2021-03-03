@@ -22,8 +22,9 @@
  7. If the desired phase is found in the strongest band, digital pin 2 (labeled 2) will be held at a high voltage for 10 samples (5 ms).
  8. Plug in serial USB to change triggering phase or threshold.
 ## I/O Pins
-* __Analog pin 7__ (21 on teensy): input signal (0-3.3 V)
+* __Analog pin 6__ (21 on teensy): input signal (0-3.3 V)
 * __Digital pin 2__ (2 on teensy): written high for triggering 
+* __Digital pin 1__ (1 on teensy): set high to supress triggering output
 * __Ground__ (G on teensy): ground
 * [Teensy 4.1 Pinout](https://www.pjrc.com/teensy/card11a_rev2_web.pdf)
 * [Teensy 4.0 Pinout](https://www.pjrc.com/teensy/card10a_rev2_web.pdf)
