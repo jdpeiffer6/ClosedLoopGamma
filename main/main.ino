@@ -15,11 +15,13 @@ IntervalTimer interruptTimer;
 
 int phaseDetect[4] = {0, 0, 0, 0};            //keeps track of what phase each filter is at
 double amplitudes[4] = {0.0, 0.0, 0.0, 0.0};  //keeps track of what amplitude each filter is at
+unsigned activeBanks[4]={1,1,1,1};
 
 #define ADC_PIN A7
 #define SAMPLING_RATE 500   //for 2kHz or 0.0005 s
 #define default_thresh 100 //Remember, the max is 514 here!
 #define TRIGGERING_PIN 2
+#define INPUT_GATE_PIN 3
 
 String entry;
 int triggering_faze = 2;
@@ -33,7 +35,7 @@ unsigned alt_bank_counter = 0;
 
 //triggering
 bool triggered = false;
-unsigned duration_limit = 10;    //how many samples the trigger occurs for
+unsigned duration_limit = 1;    //how many samples the trigger occurs for
 unsigned trigger_counter = 0;
 
 //===========
@@ -41,7 +43,7 @@ unsigned trigger_counter = 0;
 //===========
 
 void readADC(void);
-int getMaxAmplitude(double* amplitudes, unsigned* current, unsigned* counter);
+int getMaxAmplitude(double* amplitudes, unsigned* current, unsigned* counter, unsigned* active_banks);
 void welcome();
 void user_interface();
 
@@ -102,9 +104,11 @@ void loop() {
       noInterrupts();
       computeFlag = 0;
       interrupts();
-
-      //triggering
-      currentbest = getMaxAmplitude(amplitudes, &current_bank, &alt_bank_counter);
+      
+      //==========
+      //Triggering
+      //==========
+      currentbest = getMaxAmplitude(amplitudes, &current_bank, &alt_bank_counter, activeBanks);
       if (triggered == true) {
         if (trigger_counter > duration_limit) {
           digitalWrite(TRIGGERING_PIN, LOW);
@@ -116,7 +120,9 @@ void loop() {
       } else {
         if (phaseDetect[currentbest] == triggering_faze) {
           //trigger
-          digitalWrite(TRIGGERING_PIN, HIGH);
+          if(digitalRead(INPUT_GATE_PIN)==LOW){
+            digitalWrite(TRIGGERING_PIN, HIGH);
+          }
           triggered = true;
         }
       }
@@ -129,11 +135,11 @@ void loop() {
 //=========
 
 //decides which bank has the highest amplitude
-int getMaxAmplitude(double* amplitudes, unsigned* current, unsigned* counter) {
+int getMaxAmplitude(double* amplitudes, unsigned* current, unsigned* counter,unsigned* active_banks) {
   double maxx = 0.0;
   int maxind = 0;
   for (int i = 0; i < 4; i++) {
-    if (amplitudes[i] > maxx) {
+    if (amplitudes[i] > maxx && active_banks[i] == 0) {
       maxx = amplitudes[i];
       maxind = i;
     }
@@ -164,7 +170,7 @@ void welcome() {
   Serial.println("===============");
   Serial.println("Welcome to teensy interface for closed loop gamma modulation");
   Serial.println();
-  Serial.println("J Peiffer, Z Chen, S Nair, D Headley 1/31/21");
+  Serial.println("J Peiffer, Z Chen, S Nair, D Headley 3/2/21");
   Serial.println();
   Serial.println("Possible options:");
   Serial.println("\tphase: adjust which phase you desire for triggering");
@@ -174,6 +180,8 @@ void welcome() {
   Serial.println("\t\t-2 -> trough");
   Serial.println("\tthreshold: determines the amplitude threshold required for triggering");
   Serial.println("\t\t0-514 with 514 being +/- 3.3 V");
+  Serial.println("\ttrig: specifies the length of the trigger output in samples");
+  Serial.println("\t\t1 = 0.5 ms");
   Serial.println("\tquit: exit this menu");
   Serial.println("===============");
 }
@@ -232,6 +240,26 @@ void user_interface() {
           break;
         }
       }
+    } else if (entry.equals("trig")) {
+      Serial.print("Trigger length is currently set at ");
+      Serial.println(duration_limit);
+      Serial.print("Enter a new value: ");
+      while (1) {
+        if (Serial.available()) {
+          String new_val = Serial.readStringUntil('\n');
+          duration_limit = new_val.toInt();
+          if (duration_limit < 0 ) {
+            Serial.println(duration_limit);
+            Serial.println("Try a number greater than 0: ");
+          } else {
+            break;
+          }
+        }
+      }
+      Serial.println();
+      Serial.print("Trigger length set to ");
+      Serial.println(duration_limit);
+      entry = String("job_complete");
     } else {
       Serial.println("Incorrect entry. Try again");
       Serial.println();
