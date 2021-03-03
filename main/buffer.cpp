@@ -186,7 +186,7 @@ double buffer::insert(double in)
 
 void buffer::restart(double new_threshold) {
   this->thresh = new_threshold;
-  //this->thresh = 0;
+  this->thresh = 0;
   Serial.print("Using ");
   Serial.print(this->thresh);
   Serial.println("as threshold");
