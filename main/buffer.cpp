@@ -163,7 +163,8 @@ double buffer::insert(double in)
     previous_detect = 1;
   }
   //trough (1 sample delay)
-  else if (*yPh_L1 < *yPh_L2 && *yPh_L1 < *yPhCurrent && peakAmplitude > (-1.0) * thresh && previous_detect == 2) {
+  //else if (*yPh_L1 < *yPh_L2 && *yPh_L1 < *yPhCurrent && peakAmplitude > (-1.0) * thresh && previous_detect == 2) {
+  else if (*yPh_L1 < *yPh_L2 && *yPh_L1 < *yPhCurrent && peakAmplitude >  thresh && previous_detect == 2) {
     *stat = -2;
     previous_detect = 3;
   }
@@ -184,8 +185,11 @@ double buffer::insert(double in)
 }
 
 void buffer::restart(double new_threshold) {
-  thresh = new_threshold;
-
+  this->thresh = new_threshold;
+  //this->thresh = 0;
+  Serial.print("Using ");
+  Serial.print(this->thresh);
+  Serial.println("as threshold");
   this->peakAmplitude = 0.0;
   for (size_t i = 0; i < PhSize; i++)
   {

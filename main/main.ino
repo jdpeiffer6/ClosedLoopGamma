@@ -17,15 +17,15 @@ int phaseDetect[4] = {0, 0, 0, 0};            //keeps track of what phase each f
 double amplitudes[4] = {0.0, 0.0, 0.0, 0.0};  //keeps track of what amplitude each filter is at
 unsigned activeBanks[4]={1,1,1,1};
 
-#define ADC_PIN A7
+#define ADC_PIN A6
 #define SAMPLING_RATE 500   //for 2kHz or 0.0005 s
-#define default_thresh 100 //Remember, the max is 514 here!
+#define default_thresh 300 //Remember, the max is 514 here!
 #define TRIGGERING_PIN 2
 #define INPUT_GATE_PIN 3
 
 String entry;
 int triggering_faze = 2;
-int global_thresh = 100;
+int global_thresh = default_thresh;
 int currentbest = 0;
 bool UI_done_flag = false;
 
@@ -79,7 +79,8 @@ void loop() {
   //===============
   // User Interface
   //===============
-  if (Serial.available() && UI_done_flag == false) {
+  //if (Serial.available() && UI_done_flag == false) {  // this makes it so you can only send once
+  if (Serial.available() ) {      //this will open whenever you send something in arduino serial
     user_interface();
   } else {
 
@@ -141,7 +142,7 @@ int getMaxAmplitude(double* amplitudes, unsigned* current, unsigned* counter) {
   double maxx = 0.0;
   int maxind = 0;
   for (int i = 0; i < 4; i++) {
-    if (amplitudes[i] > maxx) {
+    if (amplitudes[i] > maxx && amplitudes[i] > global_thresh) {
       maxx = amplitudes[i];
       maxind = i;
     }
@@ -223,7 +224,7 @@ void user_interface() {
         if (Serial.available()) {
           String new_val = Serial.readStringUntil('\n');
           global_thresh = new_val.toInt();
-          if (global_thresh < 0 || global_thresh > 515) {
+          if (global_thresh < 0 || global_thresh > 1000) {  //changed
             Serial.println(global_thresh);
             Serial.println("Try a number 1-514: ");
           } else {
