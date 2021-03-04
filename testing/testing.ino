@@ -201,7 +201,7 @@ void loop() {
     } else {
       if (phaseDetect4[currentbest] == triggering_faze) {
         //trigger
-        if(digitalRead(INPUT_GATE_PIN)==HIGH){
+        if(digitalRead(INPUT_GATE_PIN)==LOW){
             //digitalWrite(TRIGGERING_PIN, HIGH);
             triggered = true;
           }        
