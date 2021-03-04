@@ -5,6 +5,7 @@
 * __testing__: contains predefined input vectors (20-110 Hz chirp) for observation and testing.
     * __matlab__: contains matlab application to visualize output of testing script. Sample data is provided. Run "visualization_tool" in matlab.
 * __main__: real time code with serial interface for setting threshold and triggering phase.
+* __amplifier__: information for constructing input buffer circuit.
 ## Teensy Installation Instructions
 * Download [Arduino IDE](https://www.arduino.cc/en/software)
 * Download [Teensy Loader/Teensyduino](https://www.pjrc.com/teensy/loader.html)
